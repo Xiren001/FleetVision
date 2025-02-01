@@ -1,0 +1,43 @@
+﻿@model IEnumerable<FleetVision.Models.Employee>
+
+<h2>Employees</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Department</th>
+            <th>QR Code</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Position</td>
+                <td>@item.Department</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.QRCode))
+                    {
+                        <img src="@item.QRCode" alt="QR Code" width="100" height="100" />
+                    }
+                    else
+                    {
+                        <span class="text-danger">QR Code not available</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
