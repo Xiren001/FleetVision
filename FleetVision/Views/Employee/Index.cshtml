@@ -3,7 +3,7 @@
 <h2>Employees</h2>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">Create New</button>
 </p>
 
 <table class="table">
@@ -34,10 +34,126 @@
                     }
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#readModal" onclick="readEmployee(@item.Id, '@item.Name', '@item.Position', '@item.Department')">Read</button>
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal" onclick="editEmployee(@item.Id, '@item.Name', '@item.Position', '@item.Department')">Edit</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="deleteEmployee(@item.Id, '@item.Name')">Delete</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Position</label>
+                        <input name="Position" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <input name="Department" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Read Modal -->
+<div class="modal fade" id="readModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Employee Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="readName"></span></p>
+                <p><strong>Position:</strong> <span id="readPosition"></span></p>
+                <p><strong>Department:</strong> <span id="readDepartment"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" name="Id" id="editId" />
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input name="Name" id="editName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Position</label>
+                        <input name="Position" id="editPosition" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <input name="Department" id="editDepartment" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-warning">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteName"></strong>?</p>
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="Id" id="deleteId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function readEmployee(id, name, position, department) {
+        document.getElementById('readName').innerText = name;
+        document.getElementById('readPosition').innerText = position;
+        document.getElementById('readDepartment').innerText = department;
+    }
+
+    function editEmployee(id, name, position, department) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editPosition').value = position;
+        document.getElementById('editDepartment').value = department;
+    }
+
+    function deleteEmployee(id, name) {
+        document.getElementById('deleteId').value = id;
+        document.getElementById('deleteName').innerText = name;
+    }
+</script>
