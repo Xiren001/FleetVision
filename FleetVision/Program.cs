@@ -1,36 +1,70 @@
 using FleetVision.DBContext;
+using FleetVision.Models;
+using FleetVision.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR(); // Add SignalR
 
+// Register DbContexts
 builder.Services.AddDbContext<FleetVisionContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// Register Identity with the correct user model
+builder.Services.AddIdentity<Users, IdentityRole>(option =>
+{
+    option.Password.RequireDigit = true;
+    option.Password.RequireLowercase = true;
+    option.Password.RequireUppercase = true;
+    option.Password.RequireNonAlphanumeric = true;
+    option.Password.RequiredLength = 8;
+
+    option.User.RequireUniqueEmail = true;
+    option.SignIn.RequireConfirmedEmail = true;
+
+    option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+    option.Lockout.MaxFailedAccessAttempts = 3;
+    option.Lockout.AllowedForNewUsers = true;
+
+    option.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+    option.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
+    option.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultProvider;
+    option.Tokens.ChangePhoneNumberTokenProvider = TokenOptions.DefaultProvider;
+    option.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+
+})
+    .AddEntityFrameworkStores<AppDbContext>() // Ensure Identity uses AppDbContext
+    .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.None; // Or SameSiteMode.Strict/Lax
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensures cookies are only sent over HTTPS
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
 var app = builder.Build();
+
+await SeedServices.SeedDatabase(app.Services);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

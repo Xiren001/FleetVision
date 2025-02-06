@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using FleetVision.Models;
 
 namespace FleetVision.DBContext
@@ -10,5 +12,12 @@ namespace FleetVision.DBContext
         }
 
         public DbSet<Employee> Employees { get; set; }
+    }
+
+    public class AppDbContext : IdentityDbContext<Users>
+    {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+        }
     }
 }
