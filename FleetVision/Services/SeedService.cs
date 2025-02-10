@@ -5,16 +5,16 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FleetVision.Services
 {
-    public class SeedServices
+    public class SeedService
     {
 
-        public static async Task SeedDatabase(IServiceProvider servicesProvider)
+        public static async Task SeedDatabase(IServiceProvider serviceProvider)
         {
-            using var scope = servicesProvider.CreateScope();
+            using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var logger = scope.ServiceProvider.GetRequiredService < ILogger < SeedServices>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Users>>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger< SeedService>>();
 
 
             try
@@ -32,15 +32,15 @@ namespace FleetVision.Services
                 {
                     var adminUser = new Users
                     {
-                        UserName = adminEmail,
-                        Email = adminEmail,
                         FullName = "Admin",
+                        UserName = adminEmail,
                         NormalizedUserName = adminEmail.ToUpper(),
+                        Email = adminEmail,
                         NormalizedEmail = adminEmail.ToUpper(),
                         EmailConfirmed = true,
                         SecurityStamp = Guid.NewGuid().ToString()
                     };
-                    var result = await userManager.CreateAsync(adminUser, "Admin@123");
+                    var result = await userManager.CreateAsync(adminUser, "Admin@1234567");
                     if (result.Succeeded)
                     {
                         logger.LogInformation("Assigning Admin Role to the admin user.");

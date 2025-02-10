@@ -10,14 +10,6 @@ namespace FleetVision.DBContext
         public FleetVisionContext(DbContextOptions<FleetVisionContext> options) : base(options)
         {
         }
-
         public DbSet<Employee> Employees { get; set; }
-    }
-
-    public class AppDbContext : IdentityDbContext<Users>
-    {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
     }
 }
