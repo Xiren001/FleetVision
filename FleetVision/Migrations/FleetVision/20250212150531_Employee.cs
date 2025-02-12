@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace FleetVision.Migrations
+namespace FleetVision.Migrations.FleetVision
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Employee : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,9 @@ namespace FleetVision.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Position = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Department = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    QRCode = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    QRCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

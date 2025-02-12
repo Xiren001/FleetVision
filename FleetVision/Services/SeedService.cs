@@ -25,6 +25,7 @@ namespace FleetVision.Services
                 logger.LogInformation("Seeding roles");
                 await AddRoleAsync(roleManager, "Admin");
                 await AddRoleAsync(roleManager, "User");
+                await AddRoleAsync(roleManager, "Employee");
 
                 logger.LogInformation("Seeding admin users.");
                 var adminEmail = "admin@gmail.com";
