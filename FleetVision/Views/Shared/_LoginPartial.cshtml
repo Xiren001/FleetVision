@@ -6,11 +6,9 @@
 	{
 
 		<li class="nav-item">
-			<form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-				@Html.AntiForgeryToken()
-				<button type="submit" class="nav-link btn btn-link text-dark p-0">Logout</button>
-
-			</form>
+			<button type="button" class="nav-link btn btn-link text-dark p-0" data-bs-toggle="modal" data-bs-target="#logoutModal">
+				Logout
+			</button>
 		</li>
 	}
 	else
@@ -23,3 +21,4 @@
 		</li>
 	}
 </ul>
+

@@ -38,6 +38,18 @@ namespace FleetVision.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Employee")]
+        public IActionResult Employee()
+        {
+            return View();
+        }
+        public IActionResult QR()
+        {
+            return View();
+        }
+
+
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

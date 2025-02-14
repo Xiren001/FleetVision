@@ -39,7 +39,7 @@ namespace FleetVision.Controllers
             var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure:false);
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Employee");
+                return RedirectToAction("Index", "Home");
             }
             ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
             return View(model);
