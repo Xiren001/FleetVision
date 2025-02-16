@@ -9,7 +9,9 @@
 
 <div class="account-container">
 	<div class="account-box">
-		<h2 class="text-center mb-4">Login</h2>
+
+		<a href="#" class="navbar-brand">Fleet<span class="text-primary">Vision</span></a>
+
 		<form asp-controller="Account" asp-action="Login" method="post">
 			@Html.AntiForgeryToken()
 			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -38,7 +40,7 @@
 			<input type="submit" value="Login" class="btn btn-success w-100 p-2" />
 			<p class="text-center mt-2">Do you have an account? <a asp-controller="Account" asp-action="Register" class="text-decoration-none">Register</a></p>
 			<div class="text-center">
-				<a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
+				<a asp-controller="Home" asp-action="Home" class="text-decoration-none mt-3">Back</a>
 			</div>
 		</form>
 	</div>

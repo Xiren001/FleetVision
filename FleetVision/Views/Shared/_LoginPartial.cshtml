@@ -1,15 +1,26 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject SignInManager<Users> signInManager
+@inject UserManager<Users> UserManager
 
 <ul class="navbar-nav ms-auto align-items-center">
 	@if (signInManager.IsSignedIn(User))
 	{
+		var user = await UserManager.GetUserAsync(User);
 
+		<li class="nav-item">
+			<a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/PersonalData">
+				@(user?.UserName?.Split('@')[0]?.First().ToString().ToUpper() + user?.UserName?.Split('@')[0]?.Substring(1))
+			</a>
+		</li>
 		<li class="nav-item">
 			<button type="button" class="nav-link btn btn-link text-dark p-0" data-bs-toggle="modal" data-bs-target="#logoutModal">
 				Logout
 			</button>
 		</li>
+		@* <li class="nav-item"> *@
+		@* 	<a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/PersonalData">Manage</a> *@
+		@* </li> *@
+
 	}
 	else
 	{
@@ -17,7 +28,7 @@
 			<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
 		</li>
 		<li class="nav-item">
-			<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+			<a class="btn btn-primary ml-lg-2" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
 		</li>
 	}
 </ul>

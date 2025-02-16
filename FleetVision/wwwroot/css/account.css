@@ -1,6 +1,6 @@
 ﻿
 .account-container {
-    background-image: url('/Images/bgs.jpg');
+    background-image: url('/Images/world_pattern.svg');
     background-size: cover;
     background-position: center;
     background-repeat: repeat-y;
@@ -9,6 +9,19 @@
     justify-content: center;
     min-height: 100vh;
     padding: 2rem 0;
+    background-color: #2D2B3A;
+}
+
+.navbar-brand{
+    display:flex;
+    width:100%;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+}
+
+.navbar-brand:hover{
+    text-decoration:none;
 }
 
 .account-box {

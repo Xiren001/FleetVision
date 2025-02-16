@@ -1,35 +1,43 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Transportation Management System" />
+    <meta name="keywords" content="Fleet Vision TMS, transportation management system, fleet management, logistics software, vehicle tracking, route optimization, dispatch management, transport software, fleet tracking, TMS software, supply chain, cargo management, delivery tracking, driver management, transportation analytics" />
+    <meta name="author" content="FleetVision.site" />
     <title>@ViewData["Title"]FleetVision</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/FleetVision.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bootstrap.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/maicons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/vendor/animate/animate.css" asp-append-version="true" />
     <link rel="icon" href="/favicon.ico" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">FleetVision</a>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white sticky" data-offset="500">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Fleet<span class="text-primary">Vision</span></a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="navbar-collapse collapse" id="navbarContent">
+                    <ul class="navbar-nav ml-auto mr-auto">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                       
+
 
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        
-                        @if(User.IsInRole("Admin")){
+
+                        @if (User.IsInRole("Admin"))
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Admin">Admin</a>
                             </li>
@@ -52,16 +60,16 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="QR">QR Code</a>
                             </li>
                         }
-						<partial name="_LoginPartial" />
                     </ul>
+                    <partial name="_LoginPartial" />
                 </div>
+
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    
+    <div class="container min-vh-100">
             @RenderBody()
-        </main>
     </div>
 
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -86,14 +94,21 @@
     </div>
 
 
-    <footer class="border-top footer text-muted">
+  <footer class="page-footer bg-image" style="background-image: url('/Images/world_pattern.svg');">
         <div class="container">
-            &copy; 2025 - FleetVision - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <p class="text-center" id="copyright">Copyright &copy; 2025. FleetVision <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></p>
         </div>
     </footer>
+
+    <script src="~/js/jquery-3.5.1.min.js" asp-append-version="true"></script>
+    <script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/google-maps.js" asp-append-version="true"></script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
+    <script src="~/vendor/wow/wow.min.js" asp-append-version="true"></script>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)

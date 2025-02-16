@@ -1,0 +1,61 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Personal Data";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+    var isEmployee = User.IsInRole("Employee"); // Check if the logged-in user is an Employee
+}
+
+
+<div class="row">
+    <div class="col-md-6">
+
+        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
+        <p>
+            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+        </p>
+
+        <form id="download-data" asp-page="DownloadPersonalData" method="post">
+            <button class="btn btn-primary" type="submit">Download</button>
+        </form>
+
+        <p>
+            @if (isEmployee)
+            {
+                <!-- Show a button that triggers the modal if the user is an employee -->
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#roleRestrictionModal">Delete</button>
+            }
+            else
+            {
+                <!-- Normal delete button for other users -->
+                <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Delete</a>
+            }
+        </p>
+    </div>
+    <div class="col-md-6">
+        <partial name="_ManageNav" />
+    </div>
+</div>
+
+
+<!-- Bootstrap Modal (Warning for Employees) -->
+<div class="modal fade" id="roleRestrictionModal" tabindex="-1" aria-labelledby="roleRestrictionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="roleRestrictionModalLabel">Action Not Allowed</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Employees are not allowed to delete their accounts. Please contact an administrator for assistance.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

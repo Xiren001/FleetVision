@@ -15,6 +15,8 @@ builder.Services.AddSignalR(); // Add SignalR
 builder.Services.AddDbContext<FleetVisionContext>(options =>
     options.UseSqlServer(connectionString));
 
+//builder.Services.AddDefaultIdentity<Users>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<AppDbContext>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -52,6 +54,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
+builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
+
 var app = builder.Build();
 
 await SeedService.SeedDatabase(app.Services);
@@ -71,6 +76,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Home}/{id?}");
+app.MapRazorPages();
 
 app.Run();
