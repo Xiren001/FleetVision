@@ -1,19 +1,33 @@
 ﻿@{
-    ViewData["Title"] = "Attendance Scanner - ";
+    ViewData["Title"] = "Attendance Scanner - QR Code Scanner";
 }
 
+<div class="container my-5">
+    <div class="text-center">
+        <h1 class="display-4 mb-4">QR Code Scanner</h1>
+        <div class="card shadow-lg p-4 mx-auto" style="max-width: 600px;">
+            <!-- Webcam Feed -->
+            <div class="mb-4">
+                <video id="webcam" autoplay playsinline class="img-fluid rounded-3"></video>
+                <canvas id="canvas" style="display:none;"></canvas>
+            </div>
 
-<div class="text-center">
-    <h1 class="display-4">QR Code Scanner</h1>
-    <video id="webcam" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div>
-        <button id="startButton" class="btn btn-primary">Start Camera</button>
-        <button id="stopButton" class="btn btn-danger">Stop Camera</button>
-    </div>
-    <div>
-        <label for="result">QR Code Content:</label>
-        <input type="text" id="result" readonly class="form-control" />
+            <!-- Camera Controls -->
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <button id="startButton" class="btn btn-primary rounded-pill px-4">
+                    <i class="fas fa-play me-2"></i>Start Camera
+                </button>
+                <button id="stopButton" class="btn btn-danger rounded-pill px-4" disabled>
+                    <i class="fas fa-stop me-2"></i>Stop Camera
+                </button>
+            </div>
+
+            <!-- QR Code Result -->
+            <div class="mb-3">
+                <label for="result" class="form-label fw-bold">QR Code Content:</label>
+                <input type="text" id="result" readonly class="form-control text-center" placeholder="Scan a QR code to see the result" />
+            </div>
+        </div>
     </div>
 </div>
 
@@ -36,6 +50,7 @@
                 requestAnimationFrame(tick);
             } catch (err) {
                 console.error("Error accessing the webcam: ", err);
+                alert("Unable to access the webcam. Please ensure your camera is enabled.");
             }
         });
 
