@@ -27,6 +27,12 @@
                 <label for="result" class="form-label fw-bold">QR Code Content:</label>
                 <input type="text" id="result" readonly class="form-control text-center" placeholder="Scan a QR code to see the result" />
             </div>
+
+            <!-- Status Message -->
+            <div id="scan-status" class="text-center fw-bold mt-3"></div>
+
+            <!-- CSRF Token for Security -->
+            @Html.AntiForgeryToken()
         </div>
     </div>
 </div>
@@ -34,51 +40,102 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
-        const resultInput = document.getElementById('result');
-        const startButton = document.getElementById('startButton');
-        const stopButton = document.getElementById('stopButton');
-        let stream;
+           document.addEventListener("DOMContentLoaded", () => {
+            const video = document.getElementById("webcam");
+            const canvas = document.getElementById("canvas");
+            const resultInput = document.getElementById("result");
+            const startButton = document.getElementById("startButton");
+            const stopButton = document.getElementById("stopButton");
+            const scanStatus = document.getElementById("scan-status");
+            let stream;
+            let lastScannedCode = "";
 
-        startButton.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                video.srcObject = stream;
-                startButton.disabled = true;
-                stopButton.disabled = false;
-                requestAnimationFrame(tick);
-            } catch (err) {
-                console.error("Error accessing the webcam: ", err);
-                alert("Unable to access the webcam. Please ensure your camera is enabled.");
-            }
-        });
+            // ✅ Start the Camera
+            startButton.addEventListener("click", async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    video.srcObject = stream;
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+                    requestAnimationFrame(scanFrame);
+                } catch (err) {
+                    console.error("🚨 Error accessing webcam: ", err);
+                    alert("⚠ Unable to access webcam. Please allow camera permissions.");
+                }
+            });
 
-        stopButton.addEventListener('click', () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-                startButton.disabled = false;
-                stopButton.disabled = true;
-            }
-        });
+            // ✅ Stop the Camera
+            stopButton.addEventListener("click", () => {
+                stopCamera();
+            });
 
-        function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.hidden = false;
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                if (code) {
-                    resultInput.value = code.data;
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.srcObject = null;
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
                 }
             }
-            requestAnimationFrame(tick);
-        }
+
+            // ✅ Scan QR Code from Camera Feed
+            function scanFrame() {
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.hidden = false;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const context = canvas.getContext("2d");
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+
+                    if (code && code.data !== lastScannedCode) {
+                        lastScannedCode = code.data;
+                        resultInput.value = code.data;
+                        sendAttendance(code.data);
+                        setTimeout(() => (lastScannedCode = ""), 5000); // Prevent duplicate scanning
+                    }
+                }
+                requestAnimationFrame(scanFrame);
+            }
+
+            // ✅ Send Attendance Data to Server
+            function sendAttendance(qrData) {
+                const tokenElement = document.querySelector("input[name='__RequestVerificationToken']");
+                const token = tokenElement ? tokenElement.value : "";
+
+                fetch("/Employee/RecordAttendance", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token,
+                    },
+                    body: JSON.stringify({ qrCodeData: qrData }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log("📩 Server Response:", data);
+                        scanStatus.textContent = data.message;
+                        scanStatus.style.color = data.success ? "green" : "red";
+
+                        if (data.success) {
+                            setTimeout(() => {
+                                scanStatus.textContent = "";
+                            }, 5000);
+                        }
+
+                        // ✅ Stop the camera after a successful scan
+                        stopCamera();
+                    })
+                    .catch((error) => {
+                        console.error("🚨 Fetch Error:", error);
+                        scanStatus.textContent = "⚠ An unexpected error occurred while processing attendance.";
+                        scanStatus.style.color = "red";
+                    });
+            }
+        });
+
     </script>
 }

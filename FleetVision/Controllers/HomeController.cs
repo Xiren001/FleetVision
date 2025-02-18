@@ -56,14 +56,6 @@ namespace FleetVision.Controllers
         {
             return View();
         }
-
-        [Authorize(Roles = "User")]
-        public IActionResult User()
-        {
-            return View();
-        }
-
-        [Authorize(Roles = "Employee")]
         public IActionResult Employee()
         {
             return View();
@@ -72,6 +64,20 @@ namespace FleetVision.Controllers
         {
             return View();
         }
+        public IActionResult Attendance()
+        {
+            return View();
+        }
+
+
+        [Authorize(Roles = "User")]
+        public IActionResult User()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Employee")]
+        
 
 
 

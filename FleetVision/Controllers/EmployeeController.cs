@@ -60,7 +60,7 @@ namespace FleetVision.Controllers
                 employee.Password = Employee.HashPassword(defaultPassword);
 
                 // 3. Generate a QR code (your existing code)
-                string qrCodeData = $"Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}, Email: {employee.Email}";
+                string qrCodeData = $"ID: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}, Email: {employee.Email}";
                 employee.QRCode = GenerateQRCode(qrCodeData);
                 if (employee.QRCode == null)
                 {
@@ -149,7 +149,7 @@ namespace FleetVision.Controllers
                 existingEmployee.Department = employee.Department;
 
                 // Generate new QR code data
-                string qrCodeData = $"Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}";
+                string qrCodeData = $"ID: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}, Email: {employee.Email}";
                 string newQRCodePath = GenerateQRCode(qrCodeData);
 
                 if (newQRCodePath == null)
@@ -216,6 +216,79 @@ namespace FleetVision.Controllers
                 return Json(new { success = false, message = "An error occurred while deleting the employee. Please try again." });
             }
         }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken] // 🚨 Disable validation for fetch requests, or handle it properly in headers
+        public async Task<IActionResult> RecordAttendance([FromBody] AttendanceRequestModel data)
+        {
+            if (data == null || string.IsNullOrEmpty(data.QrCodeData))
+            {
+                return Json(new { success = false, message = "Invalid QR code." });
+            }
+
+            string[] qrParts = data.QrCodeData.Split(", ");
+            string employeeEmail = qrParts.FirstOrDefault(e => e.StartsWith("Email:"))?.Split(": ")[1];
+
+            if (string.IsNullOrEmpty(employeeEmail))
+            {
+                return Json(new { success = false, message = "Invalid QR Code format. Email missing." });
+            }
+
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == employeeEmail);
+            if (employee == null)
+            {
+                return Json(new { success = false, message = "Employee not found." });
+            }
+
+            var today = DateTime.Today;
+            var now = DateTime.Now;
+
+            var latestAttendance = await _context.Attendances
+                .Where(a => a.EmployeeId == employee.Id && a.TimeIn.Date == today)
+                .OrderByDescending(a => a.TimeIn)
+                .FirstOrDefaultAsync();
+
+            if (latestAttendance == null)
+            {
+                var newAttendance = new Attendance
+                {
+                    EmployeeId = employee.Id,
+                    TimeIn = now
+                };
+                _context.Attendances.Add(newAttendance);
+
+                _context.AttendanceLogs.Add(new AttendanceLog
+                {
+                    EmployeeId = employee.Id,
+                    Timestamp = now,
+                    Status = "Time In"
+                });
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Time In recorded successfully!" });
+            }
+            else if (latestAttendance.TimeOut == null && (now - latestAttendance.TimeIn).TotalMinutes >= 240)
+            {
+                latestAttendance.TimeOut = now;
+                _context.Update(latestAttendance);
+
+                _context.AttendanceLogs.Add(new AttendanceLog
+                {
+                    EmployeeId = employee.Id,
+                    Timestamp = now,
+                    Status = "Time Out"
+                });
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Time Out recorded successfully!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "⚠ Cannot Time Out yet. Minimum 4 hours required after Time In." });
+            }
+        }
+
+
 
         private string? GenerateQRCode(string qrCodeData)
         {

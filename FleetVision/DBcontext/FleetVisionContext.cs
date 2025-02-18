@@ -11,5 +11,8 @@ namespace FleetVision.DBContext
         {
         }
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<AttendanceLog> AttendanceLogs { get; set; }
+
     }
 }

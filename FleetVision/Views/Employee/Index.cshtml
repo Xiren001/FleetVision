@@ -53,7 +53,7 @@
 
 <!-- Create Modal -->
 <div class="modal fade" id="createModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Create Employee</h5>
@@ -91,7 +91,7 @@
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Employee</h5>
@@ -126,7 +126,7 @@
 
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Delete Employee</h5>
@@ -145,12 +145,12 @@
 </div>
 
 <!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalTitle" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p id="confirmationModalMessage">Are you sure?</p>
@@ -164,12 +164,12 @@
 </div>
 
 <!-- Default Password Modal -->
-<div class="modal fade" id="defaultPasswordModal" tabindex="-1" aria-labelledby="defaultPasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="defaultPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="defaultPasswordModalLabel">Employee Created</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Employee Created</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>The default password for the new employee is:</p>
@@ -181,7 +181,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <!-- This button will trigger the modal to close and then reload the page -->
                 <button type="button" class="btn btn-primary" id="closeModalBtn">OK</button>
             </div>
         </div>
@@ -189,31 +188,52 @@
 </div>
 
 
+<!-- Toast Container (Fixed at Top-Right) -->
+<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050; top: 90vh; right: 1vw;"></div>
 
-
-<!-- Toast Container -->
-<div id="toastContainer" aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 11">
-    <div id="toastTemplate" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
+<!-- Toast Template (Hidden) -->
+<div id="toastTemplate" class="toast align-items-center shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
             <strong class="me-auto">Notification</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <p class="mb-0" id="toastMessage"></p>
         </div>
-        <div class="toast-body"></div>
+        @* <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button> *@
     </div>
 </div>
 
 
-
 <script>
-    function showToast(message, success) {
+       function showToast(message, type = 'success') {
         const toastContainer = document.getElementById('toastContainer');
         const toastTemplate = document.getElementById('toastTemplate');
+
+        // Clone toast template
         const toast = toastTemplate.cloneNode(true);
-        toast.querySelector('.toast-body').textContent = message;
-        toast.classList.add(success ? 'bg-success' : 'bg-danger');
-        toast.classList.add('text-white');
+        toast.removeAttribute("id"); // Prevent duplicate IDs
+        toast.querySelector("#toastMessage").textContent = message;
+
+        // Set colors & icon based on type
+        toast.classList.add("text-white", "rounded-3", "border-0");
+        if (type === "success") {
+            toast.classList.add("bg-success");
+        } else if (type === "error") {
+            toast.classList.add("bg-danger");
+        } else if (type === "warning") {
+            toast.classList.add("bg-warning", "text-dark");
+        } else {
+            toast.classList.add("bg-primary");
+        }
+
+        // Append & show toast
         toastContainer.appendChild(toast);
-        new bootstrap.Toast(toast).show();
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+
+        // Auto-remove toast after it disappears
+        toast.addEventListener("hidden.bs.toast", () => {
+            toast.remove();
+        });
     }
 
 
@@ -398,4 +418,31 @@
         document.getElementById('deleteId').value = id;
         document.getElementById('deleteName').innerText = name;
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".modal").forEach(function (modal) {
+        modal.addEventListener("show.bs.modal", function () {
+            let zIndex = 1050 + (document.querySelectorAll(".modal.show").length * 10);
+            this.style.zIndex = zIndex;
+
+            setTimeout(() => {
+                document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+                    if (!backdrop.classList.contains("modal-stack")) {
+                        backdrop.style.zIndex = zIndex - 1;
+                        backdrop.classList.add("modal-stack");
+                    }
+                });
+            }, 0);
+        });
+
+        modal.addEventListener("hidden.bs.modal", function () {
+            if (document.querySelectorAll(".modal.show").length > 0) {
+                document.body.classList.add("modal-open");
+            } else {
+                document.body.classList.remove("modal-open");
+            }
+        });
+    });
+});
+
 </script>
