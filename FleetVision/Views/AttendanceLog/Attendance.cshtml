@@ -4,7 +4,7 @@
     ViewData["Title"] = "Attendance Logs";
 }
 
-<div class="container mt-4">
+<div class="container my-5">
     <div class="card shadow-sm rounded-4">
         <div class="card-body">
             <h2 class="text-center mb-4">Attendance Logs</h2>
@@ -12,24 +12,24 @@
             <!-- Filter Form -->
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" name="search" class="form-control rounded-3" placeholder="Search Employee" value="@Context.Request.Query["search"]" />
+                    <input type="text" name="search" class="form-control rounded-3 shadow-sm" placeholder="Search Employee" value="@Context.Request.Query["search"]" />
                 </div>
                 <div class="col-md-3">
-                    <input type="date" name="startDate" class="form-control rounded-3" value="@Context.Request.Query["startDate"]" />
+                    <input type="date" name="startDate" class="form-control rounded-3 shadow-sm" value="@Context.Request.Query["startDate"]" />
                 </div>
                 <div class="col-md-3">
-                    <input type="date" name="endDate" class="form-control rounded-3" value="@Context.Request.Query["endDate"]" />
+                    <input type="date" name="endDate" class="form-control rounded-3 shadow-sm" value="@Context.Request.Query["endDate"]" />
                 </div>
                 <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary rounded-3">Filter</button>
+                    <button type="submit" class="btn btn-primary rounded-3 shadow-sm">Filter</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Attendance Table -->
-    <div class="table-responsive mt-4">
-        <table class="table table-hover shadow-sm rounded-4">
+    <div class="table-responsive mt-4 p-2 rounded-3">
+        <table class="table table-hover table-striped shadow-sm rounded-3 overflow-hidden">
             <thead class="table-dark">
                 <tr>
                     <th>Employee</th>
@@ -41,10 +41,10 @@
                 @foreach (var log in Model)
                 {
                     <tr>
-                        <td>@log.Employee.Name</td>
+                        <td class="fw-semibold">@log.Employee.Name</td>
                         <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
-                            <span class="badge @(log.Status == "Present" ? "bg-success" : "bg-danger")">
+                            <span class="badge @(log.Status == "Present" ? "bg-success" : "bg-danger") rounded-pill px-3 py-2">
                                 @log.Status
                             </span>
                         </td>
@@ -54,3 +54,4 @@
         </table>
     </div>
 </div>
+

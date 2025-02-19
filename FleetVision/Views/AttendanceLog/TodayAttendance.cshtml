@@ -4,44 +4,39 @@
     ViewData["Title"] = "Today's Attendance";
 }
 
-<div class="container my-4">
-    <h2 class="mb-4 text-center">Today's Attendance</h2>
-
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-warning text-center">No attendance records for today.</div>
-    }
-    else
-    {
-        <table class="table table-striped">
-            <thead>
+<div class="container my-5">
+    <div class="table-responsive p-2 rounded-3">
+        <table class="table table-hover table-striped rounded-3 overflow-hidden shadow">
+            <thead class="table-dark">
                 <tr>
-                    <th>Employee Name</th>
-                    <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Status</th>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Time In</th>
+                    <th scope="col">Time Out</th>
+                    <th scope="col">Status</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var record in Model)
                 {
                     <tr>
-                        <td>@(record.Employee != null ? record.Employee.Name : "Unknown")</td>
+                        <td class="fw-semibold">@(record.Employee?.Name ?? "Unknown")</td>
                         <td>@record.TimeIn.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@(record.TimeOut?.ToString("yyyy-MM-dd HH:mm") ?? "Not yet timed out")</td>
+                        <td>
+                            @(record.TimeOut?.ToString("yyyy-MM-dd HH:mm") ?? "Not yet timed out")
+                        </td>
                         <td>
                             @if (record.TimeOut == null)
                             {
-                                <span class="badge bg-success">Present</span>
+                                <span class="badge bg-success rounded-pill px-3 py-2">Present</span>
                             }
                             else
                             {
-                                <span class="badge bg-primary">Completed</span>
+                                <span class="badge bg-primary rounded-pill px-3 py-2">Completed</span>
                             }
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
-    }
+    </div>
 </div>
