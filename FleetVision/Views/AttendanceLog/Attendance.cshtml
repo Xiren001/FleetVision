@@ -7,12 +7,12 @@
 <div class="container mt-4">
     <div class="card shadow-sm rounded-4">
         <div class="card-body">
-            <h2 class="text-center mb-4">📌 Attendance Logs</h2>
+            <h2 class="text-center mb-4">Attendance Logs</h2>
 
             <!-- Filter Form -->
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" name="search" class="form-control rounded-3" placeholder="🔍 Search Employee" value="@Context.Request.Query["search"]" />
+                    <input type="text" name="search" class="form-control rounded-3" placeholder="Search Employee" value="@Context.Request.Query["search"]" />
                 </div>
                 <div class="col-md-3">
                     <input type="date" name="startDate" class="form-control rounded-3" value="@Context.Request.Query["startDate"]" />
@@ -21,7 +21,7 @@
                     <input type="date" name="endDate" class="form-control rounded-3" value="@Context.Request.Query["endDate"]" />
                 </div>
                 <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary rounded-3">🔍 Filter</button>
+                    <button type="submit" class="btn btn-primary rounded-3">Filter</button>
                 </div>
             </form>
         </div>
@@ -32,9 +32,9 @@
         <table class="table table-hover shadow-sm rounded-4">
             <thead class="table-dark">
                 <tr>
-                    <th>👤 Employee</th>
-                    <th>📅 Timestamp</th>
-                    <th>✅ Status</th>
+                    <th>Employee</th>
+                    <th>Timestamp</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>

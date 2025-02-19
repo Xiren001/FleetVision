@@ -69,6 +69,11 @@ namespace FleetVision.Controllers
             return View();
         }
 
+        public IActionResult TodayAttendance()
+        {
+            return View();
+        }
+
 
         [Authorize(Roles = "User")]
         public IActionResult User()

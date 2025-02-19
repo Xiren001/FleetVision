@@ -288,6 +288,20 @@ namespace FleetVision.Controllers
             }
         }
 
+        public async Task<IActionResult> TodayAttendance()
+        {
+            var today = DateTime.Today;
+
+            var attendanceRecords = await _context.Attendances
+                .Where(a => a.TimeIn.Date == today)
+                .Include(a => a.Employee) // Include Employee details
+                .OrderByDescending(a => a.TimeIn)
+                .ToListAsync();
+
+            return View(attendanceRecords);
+        }
+
+
 
 
         private string? GenerateQRCode(string qrCodeData)

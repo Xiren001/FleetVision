@@ -1,0 +1,47 @@
+﻿@model List<FleetVision.Models.Attendance>
+
+@{
+    ViewData["Title"] = "Today's Attendance";
+}
+
+<div class="container my-4">
+    <h2 class="mb-4 text-center">Today's Attendance</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-warning text-center">No attendance records for today.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model)
+                {
+                    <tr>
+                        <td>@(record.Employee != null ? record.Employee.Name : "Unknown")</td>
+                        <td>@record.TimeIn.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(record.TimeOut?.ToString("yyyy-MM-dd HH:mm") ?? "Not yet timed out")</td>
+                        <td>
+                            @if (record.TimeOut == null)
+                            {
+                                <span class="badge bg-success">Present</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Completed</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
