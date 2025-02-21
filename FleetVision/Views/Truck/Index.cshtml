@@ -213,7 +213,6 @@
                     <div class="mb-3">
                         <label class="form-label">Truck Image</label>
                         <input type="file" name="ImageFile" id="editImageFile" class="form-control" accept="image/*" />
-                        <img id="editImagePreview" src="" alt="Preview Image" style="display:none; width: 100px; height: auto;">
                     </div>
 
                     <button type="submit" class="btn btn-warning">Save</button>
@@ -281,144 +280,213 @@
 </div>
 
 
-<script defer>
-    document.addEventListener("DOMContentLoaded", function () {
+<script>
+
+    function showToast(message, type = 'success') {
         const toastContainer = document.getElementById('toastContainer');
         const toastTemplate = document.getElementById('toastTemplate');
-        const createForm = document.getElementById('createForm');
-        const editForm = document.getElementById('editForm');
-        const deleteForm = document.getElementById('deleteForm');
 
-        function showToast(message, type = 'success') {
-            const toast = toastTemplate.cloneNode(true);
-            toast.removeAttribute("id");
-            toast.querySelector("#toastMessage").textContent = message;
+        // Clone toast template
+        const toast = toastTemplate.cloneNode(true);
+        toast.removeAttribute("id"); // Prevent duplicate IDs
+        toast.querySelector("#toastMessage").textContent = message;
 
-            toast.classList.add("text-white", "rounded-3", "border-0", type === "success" ? "bg-success" : type === "error" ? "bg-danger" : type === "warning" ? "bg-warning text-dark" : "bg-primary");
-
-            toastContainer.appendChild(toast);
-            new bootstrap.Toast(toast, { delay: 3000 }).show();
-
-            toast.addEventListener("hidden.bs.toast", () => toast.remove());
+        // Set colors & icon based on type
+        toast.classList.add("text-white", "rounded-3", "border-0");
+        if (type === "success") {
+            toast.classList.add("bg-success");
+        } else if (type === "error") {
+            toast.classList.add("bg-danger");
+        } else if (type === "warning") {
+            toast.classList.add("bg-warning", "text-dark");
+        } else {
+            toast.classList.add("bg-primary");
         }
 
-        function handleFormSubmit(form, confirmationMessage, callback) {
-            if (!form) return;
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                showConfirmationModal(confirmationMessage, callback);
+        // Append & show toast
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+
+        // Auto-remove toast after it disappears
+        toast.addEventListener("hidden.bs.toast", () => {
+            toast.remove();
+        });
+    }
+
+
+        document.getElementById('createForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        showConfirmationModal("Are you sure you want to add this truck?", submitCreateForm);
+    });
+
+    function submitCreateForm() {
+        const formData = new FormData(document.getElementById('createForm'));
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch(document.getElementById('createForm').action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                $('#createModal').modal('hide');
+                location.reload();
+            } else {
+                showToast(data.message, "error");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', "error");
+        });
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        showConfirmationModal("Are you sure you want to edit this truck?", submitEditForm);
+    });
+
+    function submitEditForm() {
+        const formData = new FormData(document.getElementById('editForm'));
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch(document.getElementById('editForm').action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, true);
+                $('#editModal').modal('hide');
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            } else {
+                showToast(data.message, false);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', false);
+        });
+    }
+
+    document.getElementById('deleteForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, "success");
+                $('#deleteModal').modal('hide');
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            } else {
+                showToast(data.message, "error");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', "error");
+        });
+    });
+
+
+    function showConfirmationModal(message, callback) {
+        // Set the confirmation message
+        const modalMessageElement = document.getElementById('confirmationModalMessage');
+        modalMessageElement.textContent = message;
+
+        // Replace the confirm button to clear previous event listeners
+        const oldConfirmButton = document.getElementById('confirmBtn');
+        const newConfirmButton = oldConfirmButton.cloneNode(true);
+        oldConfirmButton.parentNode.replaceChild(newConfirmButton, oldConfirmButton);
+
+        // When the user confirms, run the callback and hide the modal
+        newConfirmButton.addEventListener('click', function () {
+            callback();
+            const confirmationModalEl = document.getElementById('confirmationModal');
+            const modalInstance = bootstrap.Modal.getInstance(confirmationModalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        });
+
+        // Show the modal
+        const confirmationModalEl = document.getElementById('confirmationModal');
+        const modalInstance = new bootstrap.Modal(confirmationModalEl);
+        modalInstance.show();
+    }
+
+    function editTruck(id, plateNumber, vin, make, model, year, color, fuelType, grossWeight, payloadCapacity, fuelCapacity) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editPlateNumber').value = plateNumber;
+        document.getElementById('editVIN').value = vin;
+        document.getElementById('editMake').value = make;
+        document.getElementById('editModel').value = model;
+        document.getElementById('editYear').value = year;
+        document.getElementById('editColor').value = color;
+        document.getElementById('editFuelType').value = fuelType;
+        document.getElementById('editGrossWeight').value = grossWeight;
+        document.getElementById('editPayloadCapacity').value = payloadCapacity;
+        document.getElementById('editFuelCapacity').value = fuelCapacity;
+
+        var editModalEl = document.getElementById('editModal');
+        var editModal = bootstrap.Modal.getInstance(editModalEl) || new bootstrap.Modal(editModalEl);
+        editModal.show();
+
+    }
+
+    function deleteTruck(id, plateNumber) {
+        document.getElementById('deleteId').value = id;
+        document.getElementById('deletePlateNumber').innerText = plateNumber;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".modal").forEach(function (modal) {
+            modal.addEventListener("show.bs.modal", function () {
+                let zIndex = 1050 + (document.querySelectorAll(".modal.show").length * 10);
+                this.style.zIndex = zIndex;
+
+                setTimeout(() => {
+                    document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+                        if (!backdrop.classList.contains("modal-stack")) {
+                            backdrop.style.zIndex = zIndex - 1;
+                            backdrop.classList.add("modal-stack");
+                        }
+                    });
+                }, 0);
             });
-        }
 
-        function submitForm(form) {
-            const formData = new FormData(form);
-            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'RequestVerificationToken': token }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    showToast(data.message, data.success ? "success" : "error");
-                    if (data.success) {
-                        $(form.closest('.modal')).modal('hide');
-                        setTimeout(() => location.reload(), 1500);
-                    }
-                })
-                .catch(() => showToast('An error occurred. Please try again.', "error"));
-        }
-
-        function showConfirmationModal(message, callback) {
-            document.getElementById('confirmationModalMessage').textContent = message;
-            const confirmBtn = document.getElementById('confirmBtn');
-
-            confirmBtn.replaceWith(confirmBtn.cloneNode(true)); // Remove previous event listeners
-            document.getElementById('confirmBtn').addEventListener('click', () => {
-                callback();
-                bootstrap.Modal.getInstance(document.getElementById('confirmationModal')).hide();
-            });
-
-            new bootstrap.Modal(document.getElementById('confirmationModal')).show();
-        }
-
-        function previewImage(inputId, previewId) {
-            const fileInput = document.getElementById(inputId);
-            const previewElement = document.getElementById(previewId);
-            if (!fileInput || !previewElement) return;
-
-            fileInput.addEventListener('change', function (event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = e => {
-                        previewElement.src = e.target.result;
-                        previewElement.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
+            modal.addEventListener("hidden.bs.modal", function () {
+                if (document.querySelectorAll(".modal.show").length > 0) {
+                    document.body.classList.add("modal-open");
+                } else {
+                    document.body.classList.remove("modal-open");
                 }
             });
-        }
-
-        function editTruck(id, plateNumber, vin, make, model, year, color, fuelType, grossWeight, payloadCapacity, fuelCapacity, imageUrl) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editPlateNumber').value = plateNumber;
-            document.getElementById('editVIN').value = vin;
-            document.getElementById('editMake').value = make;
-            document.getElementById('editModel').value = model;
-            document.getElementById('editYear').value = year;
-            document.getElementById('editColor').value = color;
-            document.getElementById('editFuelType').value = fuelType;
-            document.getElementById('editGrossWeight').value = grossWeight;
-            document.getElementById('editPayloadCapacity').value = payloadCapacity;
-            document.getElementById('editFuelCapacity').value = fuelCapacity;
-
-            const preview = document.getElementById('editImagePreview');
-            if (imageUrl) {
-                preview.src = imageUrl;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-
-            new bootstrap.Modal(document.getElementById('editModal')).show();
-        }
-
-        function deleteTruck(id, plateNumber) {
-            document.getElementById('deleteId').value = id;
-            document.getElementById('deletePlateNumber').innerText = plateNumber;
-        }
-
-        function handleModalStacking() {
-            document.querySelectorAll(".modal").forEach(modal => {
-                modal.addEventListener("show.bs.modal", function () {
-                    let zIndex = 1050 + (document.querySelectorAll(".modal.show").length * 10);
-                    this.style.zIndex = zIndex;
-                    setTimeout(() => {
-                        document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
-                            if (!backdrop.classList.contains("modal-stack")) {
-                                backdrop.style.zIndex = zIndex - 1;
-                                backdrop.classList.add("modal-stack");
-                            }
-                        });
-                    }, 0);
-                });
-
-                modal.addEventListener("hidden.bs.modal", function () {
-                    if (!document.querySelectorAll(".modal.show").length) {
-                        document.body.classList.remove("modal-open");
-                    }
-                });
-            });
-        }
-
-        // Bind Events
-        handleFormSubmit(createForm, "Are you sure you want to add this truck?", () => submitForm(createForm));
-        handleFormSubmit(editForm, "Are you sure you want to edit this truck?", () => submitForm(editForm));
-        handleFormSubmit(deleteForm, "Are you sure you want to delete this truck?", () => submitForm(deleteForm));
-
-        previewImage('editImageFile', 'editImagePreview');
-        handleModalStacking();
+        });
     });
+
+
 </script>

@@ -204,7 +204,8 @@
 
 
 <script>
-       function showToast(message, type = 'success') {
+
+    function showToast(message, type = 'success') {
         const toastContainer = document.getElementById('toastContainer');
         const toastTemplate = document.getElementById('toastTemplate');
 
@@ -419,7 +420,8 @@
         document.getElementById('deleteName').innerText = name;
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
+
+document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".modal").forEach(function (modal) {
         modal.addEventListener("show.bs.modal", function () {
             let zIndex = 1050 + (document.querySelectorAll(".modal.show").length * 10);
