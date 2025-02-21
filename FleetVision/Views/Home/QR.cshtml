@@ -5,34 +5,51 @@
 <div class="container my-5">
     <div class="text-center">
         <h1 class="display-4 mb-4">QR Code Scanner</h1>
-        <div class="card shadow-lg p-4 mx-auto" style="max-width: 600px;">
-            <!-- Webcam Feed with Scanner Overlay -->
-            <div class="mb-4 position-relative">
-                <div id="camera-box" class="position-relative border border-secondary rounded">
-                    <video id="webcam" autoplay playsinline class="img-fluid rounded"
-                           style="width: 100%; height: 300px; object-fit: cover; background: #000;"></video>
-                    <canvas id="canvas" class="d-none"></canvas>
-
-                    <!-- QR Guide Box -->
-                    <div class="position-absolute top-50 start-50 translate-middle border border-success rounded guide-box"></div>
-                </div>
-            </div>
-
-            <!-- Camera Controls -->
-            <div class="d-flex justify-content-center gap-3 mb-4">
-                <button id="startButton" class="btn btn-primary rounded-pill px-4">
-                    <i class="fas fa-play me-2"></i>Start Camera
-                </button>
-                <button id="stopButton" class="btn btn-danger rounded-pill px-4" disabled>
-                    <i class="fas fa-stop me-2"></i>Stop Camera
-                </button>
-            </div>
-
-            <!-- QR Code Result -->
+        <div class="card shadow-lg p-4 mx-auto" style="max-width: 900px;">
+            <!-- Camera Selection Dropdown -->
             <div class="mb-3">
-                <label for="result" class="form-label fw-bold">QR Code Content:</label>
-                <input type="text" id="result" readonly class="form-control text-center"
-                       placeholder="Scan a QR code to see the result" />
+                <label for="cameraSelect" class="form-label fw-bold">Select Camera:</label>
+                <select id="cameraSelect" class="form-select">
+                    <option selected>Loading cameras...</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <!-- Webcam Feed with Scanner Overlay -->
+                <div class="col-md-7">
+                    <div class="mb-4 position-relative">
+                        <div id="camera-box" class="position-relative border border-secondary rounded">
+                            <video id="webcam" autoplay playsinline class="img-fluid rounded"
+                                   style="width: 100%; height: 300px; object-fit: cover; background: #000;"></video>
+                            <canvas id="canvas" class="d-none"></canvas>
+
+                            <!-- QR Guide Box -->
+                            <div class="position-absolute top-50 start-50 translate-middle border border-success rounded guide-box"
+                                 style="width: 60%; height: 60%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Camera Controls -->
+                    <div class="d-flex justify-content-center gap-3 mb-4">
+                        <button id="startButton" class="btn btn-primary rounded-pill px-4">
+                            <i class="fas fa-play me-2"></i>Start Camera
+                        </button>
+                        <button id="stopButton" class="btn btn-danger rounded-pill px-4" disabled>
+                            <i class="fas fa-stop me-2"></i>Stop Camera
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Code Result Box -->
+                <div class="col-md-5">
+                    <div class="card border-primary p-3">
+                        <h5 class="fw-bold text-center">QR Code Result</h5>
+                        <div id="result-box" class="p-3 text-center border rounded bg-light"
+                             style="min-height: 80px; font-size: 1.2rem; font-weight: bold;">
+                            <span id="result">Scan a QR code...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Status Message -->
@@ -44,38 +61,61 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
-           document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const video = document.getElementById("webcam");
             const canvas = document.getElementById("canvas");
-            const resultInput = document.getElementById("result");
+            const resultBox = document.getElementById("result");
             const startButton = document.getElementById("startButton");
             const stopButton = document.getElementById("stopButton");
             const scanStatus = document.getElementById("scan-status");
+            const cameraSelect = document.getElementById("cameraSelect");
             let stream;
             let lastScannedCode = "";
+
+            // ✅ Load Available Cameras
+            async function getCameras() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    cameraSelect.innerHTML = "";
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement("option");
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `Camera ${index + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error("🚨 Error listing cameras:", error);
+                    cameraSelect.innerHTML = '<option selected>No cameras found</option>';
+                }
+            }
+
+            await getCameras();
 
             // ✅ Start the Camera
             startButton.addEventListener("click", async () => {
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    const selectedCamera = cameraSelect.value;
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { deviceId: selectedCamera ? { exact: selectedCamera } : undefined }
+                    });
+
                     video.srcObject = stream;
                     startButton.disabled = true;
                     stopButton.disabled = false;
                     requestAnimationFrame(scanFrame);
                 } catch (err) {
-                    console.error("🚨 Error accessing webcam: ", err);
+                    console.error("🚨 Error accessing webcam:", err);
                     alert("⚠ Unable to access webcam. Please allow camera permissions.");
                 }
             });
 
             // ✅ Stop the Camera
-            stopButton.addEventListener("click", () => {
-                stopCamera();
-            });
+            stopButton.addEventListener("click", stopCamera);
 
             function stopCamera() {
                 if (stream) {
@@ -101,7 +141,7 @@
 
                     if (code && code.data !== lastScannedCode) {
                         lastScannedCode = code.data;
-                        resultInput.value = code.data;
+                        resultBox.textContent = code.data;
                         sendAttendance(code.data);
                         setTimeout(() => (lastScannedCode = ""), 5000); // Prevent duplicate scanning
                     }
@@ -144,6 +184,89 @@
                     });
             }
         });
-
     </script>
 }
+
+
+@* separatte Camera *@
+
+
+@* @{ *@
+@*     ViewData["Title"] = "Attendance Scanner - QR Code Scanner"; *@
+@* } *@
+
+@* <div class="container my-5"> *@
+@*     <div class="text-center"> *@
+@*         <h1 class="display-4 mb-4">QR Code Scanner</h1> *@
+
+@*         <div class="card shadow-lg p-4 mx-auto" style="max-width: 600px;"> *@
+@*             <!-- Open Scanner Window Button --> *@
+@*             <button id="openScanner" class="btn btn-primary mb-3"> *@
+@*                 <i class="fas fa-qrcode me-2"></i> Open Scanner *@
+@*             </button> *@
+
+@*             <!-- QR Code Result --> *@
+@*             <div class="mb-3"> *@
+@*                 <label for="result" class="form-label fw-bold">QR Code Content:</label> *@
+@*                 <input type="text" id="result" readonly class="form-control text-center" *@
+@*                        placeholder="Waiting for scan..." /> *@
+@*             </div> *@
+
+@*             <!-- Status Message --> *@
+@*             <div id="scan-status" class="text-center fw-bold mt-3"></div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+@* @section Scripts { *@
+@*     <script> *@
+@*         let scannerWindow; *@
+
+@*         document.getElementById("openScanner").addEventListener("click", () => { *@
+@*             if (!scannerWindow || scannerWindow.closed) { *@
+@*                 scannerWindow = window.open( *@
+@*                     "/Home/ScannerWindow", *@
+@*                     "ScannerWindow", *@
+@*                     "width=500,height=600,toolbar=no,menubar=no,location=no,status=no" *@
+@*                 ); *@
+@*             } else { *@
+@*                 scannerWindow.focus(); *@
+@*             } *@
+@*         }); *@
+
+@*         // ✅ Listen for real-time updates from scanner *@
+@*         window.addEventListener("storage", (event) => { *@
+@*             if (event.key === "scannedQRCode") { *@
+@*                 document.getElementById("result").value = event.newValue; *@
+@*                 sendAttendance(event.newValue); *@
+@*             } *@
+@*         }); *@
+
+@*         // ✅ Send Attendance Data to Server *@
+@*         function sendAttendance(qrData) { *@
+@*             const tokenElement = document.querySelector("input[name='__RequestVerificationToken']"); *@
+@*             const token = tokenElement ? tokenElement.value : ""; *@
+
+@*             fetch("/Employee/RecordAttendance", { *@
+@*                 method: "POST", *@
+@*                 headers: { *@
+@*                     "Content-Type": "application/json", *@
+@*                     "RequestVerificationToken": token, *@
+@*                 }, *@
+@*                 body: JSON.stringify({ qrCodeData: qrData }), *@
+@*             }) *@
+@*             .then((response) => response.json()) *@
+@*             .then((data) => { *@
+@*                 document.getElementById("scan-status").textContent = data.message; *@
+@*                 document.getElementById("scan-status").style.color = data.success ? "green" : "red"; *@
+@*             }) *@
+@*             .catch((error) => { *@
+@*                 console.error("🚨 Error sending attendance:", error); *@
+@*                 document.getElementById("scan-status").textContent = "⚠ Error processing attendance."; *@
+@*                 document.getElementById("scan-status").style.color = "red"; *@
+@*             }); *@
+@*         } *@
+@*     </script> *@
+@* } *@
+
+

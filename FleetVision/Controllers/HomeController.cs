@@ -43,6 +43,12 @@ namespace FleetVision.Controllers
             return View();
         }
 
+        public IActionResult ScannerWindow()
+        {
+            return View();
+        }
+
+
 
 
         [Authorize]
@@ -50,6 +56,9 @@ namespace FleetVision.Controllers
         {
             return View();
         }
+
+
+
 
         [Authorize(Roles = "Admin")]
         public IActionResult Admin()
@@ -73,6 +82,12 @@ namespace FleetVision.Controllers
         {
             return View();
         }
+        public IActionResult Truck()
+        {
+            return View();
+        }
+
+
 
 
         [Authorize(Roles = "User")]
@@ -80,6 +95,9 @@ namespace FleetVision.Controllers
         {
             return View();
         }
+
+
+
 
         [Authorize(Roles = "Employee")]
         
