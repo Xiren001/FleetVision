@@ -19,6 +19,8 @@ namespace FleetVision.Models
 
         public string? QRCode { get; set; }
 
+        public string? ImagePath { get; set; }
+
         [Required]
         [EmailAddress]
         public string Email { get; set; }

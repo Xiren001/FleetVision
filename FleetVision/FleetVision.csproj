@@ -29,6 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Views\TruckQR\" />
+    <Folder Include="wwwroot\EmployeeImages\" />
+    <Folder Include="wwwroot\TrucksImages\" />
     <Folder Include="wwwroot\qrcodes\" />
   </ItemGroup>
 

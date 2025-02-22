@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Today's Attendance";
+    TimeSpan workStartTime = new TimeSpan(8, 0, 0); // 08:00 AM
+    TimeSpan workEndTime = new TimeSpan(17, 0, 0);  // 05:00 PM
 }
 
 <div class="container my-5">
@@ -10,22 +12,62 @@
             <thead class="table-dark">
                 <tr>
                     <th scope="col">Employee Name</th>
-                    <th scope="col">Time In</th>
-                    <th scope="col">Time Out</th>
+                    <th scope="col">First Time In</th>
+                    <th scope="col">First Time Out</th>
+                    <th scope="col">Second Time In</th>
+                    <th scope="col">Second Time Out</th>
                     <th scope="col">Status</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var record in Model)
+                @foreach (var group in Model.GroupBy(a => a.Employee?.Id))
                 {
+                    var attendanceRecords = group.OrderBy(a => a.TimeIn).ToList();
+                    var firstEntry = attendanceRecords.ElementAtOrDefault(0); // First Time In/Out
+                    var secondEntry = attendanceRecords.ElementAtOrDefault(1); // Second Time In/Out
+
                     <tr>
-                        <td class="fw-semibold">@(record.Employee?.Name ?? "Unknown")</td>
-                        <td>@record.TimeIn.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="fw-semibold">@(firstEntry?.Employee?.Name ?? "Unknown")</td>
+
+                        <!-- First Time In -->
                         <td>
-                            @(record.TimeOut?.ToString("yyyy-MM-dd HH:mm") ?? "Not yet timed out")
+                            @(firstEntry != null ? firstEntry.TimeIn.ToString("yyyy-MM-dd HH:mm") : "-")
+                            @if (firstEntry != null && firstEntry.TimeIn.TimeOfDay > workStartTime)
+                            {
+                                <span class="badge bg-danger ms-2">Late</span>
+                            }
                         </td>
+
+                        <!-- First Time Out -->
                         <td>
-                            @if (record.TimeOut == null)
+                            @(firstEntry?.TimeOut.HasValue == true ? firstEntry.TimeOut.Value.ToString("yyyy-MM-dd HH:mm") : "Not yet timed out")
+                            @if (firstEntry?.TimeOut.HasValue == true && firstEntry.TimeOut.Value.TimeOfDay < workEndTime)
+                            {
+                                <span class="badge bg-warning ms-2">Early Out</span>
+                            }
+                        </td>
+
+                        <!-- Second Time In -->
+                        <td>
+                            @(secondEntry != null ? secondEntry.TimeIn.ToString("yyyy-MM-dd HH:mm") : "-")
+                            @if (secondEntry != null && secondEntry.TimeIn.TimeOfDay > workStartTime)
+                            {
+                                <span class="badge bg-danger ms-2">Late</span>
+                            }
+                        </td>
+
+                        <!-- Second Time Out -->
+                        <td>
+                            @(secondEntry?.TimeOut.HasValue == true ? secondEntry.TimeOut.Value.ToString("yyyy-MM-dd HH:mm") : "Not yet timed out")
+                            @if (secondEntry?.TimeOut.HasValue == true && secondEntry.TimeOut.Value.TimeOfDay < workEndTime)
+                            {
+                                <span class="badge bg-warning ms-2">Early Out</span>
+                            }
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            @if (secondEntry == null || !secondEntry.TimeOut.HasValue)
                             {
                                 <span class="badge bg-success rounded-pill px-3 py-2">Present</span>
                             }

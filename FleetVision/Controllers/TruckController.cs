@@ -24,6 +24,7 @@ namespace FleetVision.Controllers
             return View(await _context.Trucks.ToListAsync());
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromForm] Truck truck, IFormFile? imageFile)
@@ -35,18 +36,27 @@ namespace FleetVision.Controllers
 
             try
             {
+                // Handle Image Upload
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    using (var memoryStream = new MemoryStream())
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/TrucksImages");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
-                        await imageFile.CopyToAsync(memoryStream);
-                        truck.Image = memoryStream.ToArray(); // Store image as byte array
+                        await imageFile.CopyToAsync(fileStream);
                     }
+
+                    // Save only the relative path
+                    truck.ImagePath = "/TrucksImages/" + uniqueFileName;
                 }
 
+                // Save the truck record
                 _context.Add(truck);
                 await _context.SaveChangesAsync();
 
+                // Generate QR code
                 string qrCodeData = $"ID: {truck.Id}, Plate: {truck.PlateNumber}, Model: {truck.Model}, Capacity: {truck.PayloadCapacity}";
                 truck.QRCode = GenerateQRCode(qrCodeData);
                 if (truck.QRCode == null)
@@ -77,7 +87,7 @@ namespace FleetVision.Controllers
 
             if (!ModelState.IsValid)
             {
-                return Json(new { success = false, message = "Invalid data." });
+                return Json(new { success = false, message = "Invalid data.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
             }
 
             try
@@ -88,22 +98,46 @@ namespace FleetVision.Controllers
                     return Json(new { success = false, message = "Truck not found." });
                 }
 
+                // Log incoming truck details for debugging
+                Console.WriteLine($"Updating Truck ID: {id}, Plate: {truck.PlateNumber}, Model: {truck.Model}, Capacity: {truck.PayloadCapacity}");
+
+                // Update non-file fields
                 existingTruck.PlateNumber = truck.PlateNumber;
                 existingTruck.Model = truck.Model;
                 existingTruck.PayloadCapacity = truck.PayloadCapacity;
 
+                // Handle Image Upload
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    using (var memoryStream = new MemoryStream())
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/TrucksImages");
+
+                    // Delete old image if it exists
+                    if (!string.IsNullOrEmpty(existingTruck.ImagePath))
                     {
-                        await imageFile.CopyToAsync(memoryStream);
-                        existingTruck.Image = memoryStream.ToArray(); // Update image
+                        string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingTruck.ImagePath.TrimStart('/'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
                     }
+
+                    // Save new image
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(fileStream);
+                    }
+
+                    existingTruck.ImagePath = "/TrucksImages/" + uniqueFileName;
                 }
 
-                string qrCodeData = $"ID: {truck.Id}, Plate: {truck.PlateNumber}, Model: {truck.Model}, Capacity: {truck.PayloadCapacity}";
+                // Generate new QR Code
+                string qrCodeData = $"ID: {existingTruck.Id}, Plate: {existingTruck.PlateNumber}, Model: {existingTruck.Model}, Capacity: {existingTruck.PayloadCapacity}";
                 existingTruck.QRCode = GenerateQRCode(qrCodeData);
 
+                // Save changes
                 _context.Update(existingTruck);
                 await _context.SaveChangesAsync();
 
@@ -111,9 +145,13 @@ namespace FleetVision.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Error updating truck: " + ex.Message);
                 return Json(new { success = false, message = "Error updating truck.", error = ex.Message });
             }
         }
+
+
+
 
 
         [HttpPost, ActionName("Delete")]

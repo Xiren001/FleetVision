@@ -16,11 +16,7 @@
                 <th scope="col">Model</th>
                 <th scope="col">Year</th>
                 <th scope="col">Color</th>
-                <th scope="col">Fuel Type</th>
-                <th scope="col">Gross Weight</th>
-                <th scope="col">Payload Capacity</th>
-                <th scope="col">Fuel Capacity</th>
-                <th scope="col">Image</th> <!-- Added Image Column -->
+                <th scope="col">Image</th> <!-- Image Column -->
                 <th scope="col">QR Code</th>
                 <th scope="col">Actions</th>
             </tr>
@@ -35,14 +31,10 @@
                     <td>@truck.Model</td>
                     <td>@truck.Year</td>
                     <td>@truck.Color</td>
-                    <td>@truck.FuelType</td>
-                    <td>@truck.GrossWeight</td>
-                    <td>@truck.PayloadCapacity</td>
-                    <td>@truck.FuelCapacity</td>
                     <td>
-                        @if (truck.Image != null)
+                        @if (!string.IsNullOrEmpty(truck.ImagePath))
                         {
-                            <img src="data:image/png;base64,@(Convert.ToBase64String(truck.Image))"
+                            <img src="@truck.ImagePath"
                                  alt="Truck Image" class="img-thumbnail rounded" width="100" height="100" />
                         }
                         else
@@ -75,8 +67,8 @@
         '@Html.Raw(truck.FuelType)',
         @truck.GrossWeight,
         @truck.PayloadCapacity,
-        @truck.FuelCapacity)">
-
+        @truck.FuelCapacity,
+        '@Html.Raw(truck.ImagePath)')">
                                 Edit
                             </button>
 
@@ -88,6 +80,7 @@
         </tbody>
     </table>
 </div>
+
 
 
 <!-- Create Truck Modal -->
@@ -144,7 +137,12 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Truck Image</label>
-                        <input type="file" name="ImageFile" class="form-control" accept="image/*" />
+                        <input type="file" name="ImageFile" class="form-control" accept="image/*" onchange="previewImage(event)" />
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="mb-3 text-center">
+                        <img id="imagePreview" class="img-thumbnail rounded" width="150" height="150" style="display: none;" />
                     </div>
 
                     <button type="submit" class="btn btn-primary">Create</button>
@@ -168,7 +166,6 @@
                 <form id="editForm" method="post" action="/Truck/Edit" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="Id" id="editId" />
-
 
                     <div class="mb-3">
                         <label class="form-label">Plate Number</label>
@@ -210,9 +207,16 @@
                         <label class="form-label">Fuel Capacity (liters/gallons)</label>
                         <input type="number" step="0.01" name="FuelCapacity" id="editFuelCapacity" class="form-control" required />
                     </div>
+
+                    <!-- Image Upload & Preview -->
                     <div class="mb-3">
                         <label class="form-label">Truck Image</label>
-                        <input type="file" name="ImageFile" id="editImageFile" class="form-control" accept="image/*" />
+                        <input type="file" name="ImageFile" id="editImageFile" class="form-control" accept="image/*" onchange="previewEditImage(event)" />
+                    </div>
+
+                    <!-- Display Existing Image -->
+                    <div class="mb-3 text-center">
+                        <img id="editImagePreview" class="img-thumbnail rounded" width="150" height="150" style="display: none;" />
                     </div>
 
                     <button type="submit" class="btn btn-warning">Save</button>
@@ -221,7 +225,6 @@
         </div>
     </div>
 </div>
-
 
 
 <!-- Delete Truck Modal -->
@@ -315,71 +318,116 @@
     }
 
 
-        document.getElementById('createForm').addEventListener('submit', function (e) {
+    document.getElementById('createForm').addEventListener('submit', function (e) {
         e.preventDefault();
         showConfirmationModal("Are you sure you want to add this truck?", submitCreateForm);
     });
 
     function submitCreateForm() {
-        const formData = new FormData(document.getElementById('createForm'));
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const formElement = document.getElementById('createForm');
+        const formData = new FormData(formElement);
 
-        fetch(document.getElementById('createForm').action, {
+        // Get CSRF token
+        const tokenField = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenField ? tokenField.value : "";
+
+        // Disable submit button to prevent multiple submissions
+        const submitButton = formElement.querySelector("button[type='submit']");
+        submitButton.disabled = true;
+
+        fetch(formElement.action, {
             method: 'POST',
             body: formData,
             headers: {
-                'RequestVerificationToken': token
+                'RequestVerificationToken': token  // Correctly set CSRF token
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message || "Server error"); });
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log("Server Response:", data);
             if (data.success) {
                 showToast(data.message, "success");
                 $('#createModal').modal('hide');
-                location.reload();
+                setTimeout(() => location.reload(), 1000);  // Slight delay before reload
             } else {
-                showToast(data.message, "error");
+                showToast(data.message || "Failed to create truck.", "error");
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showToast('An error occurred. Please try again.', "error");
+            showToast(error.message || "An error occurred. Please try again.", "error");
+        })
+        .finally(() => {
+            // Re-enable submit button
+            submitButton.disabled = false;
         });
     }
 
-    document.getElementById('editForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        showConfirmationModal("Are you sure you want to edit this truck?", submitEditForm);
+        document.addEventListener("DOMContentLoaded", function () {
+        const editForm = document.getElementById('editForm');
+
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                showConfirmationModal("Are you sure you want to edit this truck?", submitEditForm);
+            });
+        }
+
+        function submitEditForm() {
+            const formElement = document.getElementById('editForm');
+            if (!formElement) {
+                console.error("Edit form not found!");
+                return;
+            }
+
+            const formData = new FormData(formElement);
+
+            // Ensure all inputs exist before accessing value
+            const truckIdInput = document.getElementById("editTruckId");
+            const plateInput = document.getElementById("editPlateNumber");
+            const modelInput = document.getElementById("editModel");
+            const capacityInput = document.getElementById("editPayloadCapacity");
+
+            if (truckIdInput) formData.append("Id", truckIdInput.value);
+            if (plateInput) formData.append("PlateNumber", plateInput.value);
+            if (modelInput) formData.append("Model", modelInput.value);
+            if (capacityInput) formData.append("PayloadCapacity", capacityInput.value);
+
+            const tokenField = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenField ? tokenField.value : "";
+
+            fetch(formElement.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRF-TOKEN': token }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data);
+
+                if (data.success) {
+                    showToast(data.message, "success");
+                    $('#editModal').modal('hide');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || "Failed to update truck.", "error");
+                    console.error("Server error:", data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                showToast("An error occurred. Please check console.", "error");
+            });
+        }
     });
 
-    function submitEditForm() {
-        const formData = new FormData(document.getElementById('editForm'));
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-        fetch(document.getElementById('editForm').action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'RequestVerificationToken': token
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast(data.message, true);
-                $('#editModal').modal('hide');
-                setTimeout(() => {
-                    location.reload();
-                }, 3000);
-            } else {
-                showToast(data.message, false);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('An error occurred. Please try again.', false);
-        });
-    }
+
 
     document.getElementById('deleteForm').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -438,7 +486,7 @@
         modalInstance.show();
     }
 
-    function editTruck(id, plateNumber, vin, make, model, year, color, fuelType, grossWeight, payloadCapacity, fuelCapacity) {
+      function editTruck(id, plateNumber, vin, make, model, year, color, fuelType, grossWeight, payloadCapacity, fuelCapacity, imagePath) {
         document.getElementById('editId').value = id;
         document.getElementById('editPlateNumber').value = plateNumber;
         document.getElementById('editVIN').value = vin;
@@ -451,11 +499,22 @@
         document.getElementById('editPayloadCapacity').value = payloadCapacity;
         document.getElementById('editFuelCapacity').value = fuelCapacity;
 
+        // Image Preview Handling
+        const imagePreview = document.getElementById('editImagePreview');
+        if (imagePath) {
+            imagePreview.src = imagePath;
+            imagePreview.style.display = 'block';
+        } else {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+        }
+
+        // Show Edit Modal
         var editModalEl = document.getElementById('editModal');
         var editModal = bootstrap.Modal.getInstance(editModalEl) || new bootstrap.Modal(editModalEl);
         editModal.show();
-
     }
+
 
     function deleteTruck(id, plateNumber) {
         document.getElementById('deleteId').value = id;
@@ -488,5 +547,38 @@
         });
     });
 
+    function previewImage(event) {
+        const imagePreview = document.getElementById('imagePreview');
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+        }
+    }
+
+    function previewEditImage(event) {
+        const imagePreview = document.getElementById('editImagePreview');
+        const file = event.target.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+        }
+    }
 
 </script>

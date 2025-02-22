@@ -1,6 +1,9 @@
 ﻿using FleetVision.DBContext;
 using FleetVision.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Options;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 
 namespace FleetVision.Services
@@ -26,6 +29,13 @@ namespace FleetVision.Services
                 await AddRoleAsync(roleManager, "Admin");
                 await AddRoleAsync(roleManager, "User");
                 await AddRoleAsync(roleManager, "Employee");
+
+                //await AddRoleAsync(roleManager, "Dispatcher");
+                //await AddRoleAsync(roleManager, "Driver");
+                //await AddRoleAsync(roleManager, "Parcel Scanner");
+                //await AddRoleAsync(roleManager, "Warehouse Staff");
+                //await AddRoleAsync(roleManager, "Supervisor");
+                //await AddRoleAsync(roleManager, "Guard");
 
                 logger.LogInformation("Seeding admin users.");
                 var adminEmail = "admin@gmail.com";

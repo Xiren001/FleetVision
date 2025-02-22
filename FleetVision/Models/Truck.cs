@@ -45,7 +45,6 @@ namespace FleetVision.Models
         public decimal FuelCapacity { get; set; }  // Fuel tank capacity (liters/gallons)
 
         public string? QRCode { get; set; }
-
-        public byte[]? Image { get; set; }
+        public string? ImagePath { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FleetVision.DBContext;
 using FleetVision.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,9 +34,10 @@ namespace FleetVision.Controllers
             return View(await _context.Employees.ToListAsync());
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromBody] Employee employee) // Accept JSON
+        public async Task<IActionResult> Create([FromForm] Employee employee, IFormFile? imageFile) // Accept form data and file
         {
             Console.WriteLine("Create action triggered.");
 
@@ -50,16 +52,31 @@ namespace FleetVision.Controllers
 
             try
             {
+                // Handle Image Upload
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/EmployeeImages");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(fileStream);
+                    }
+
+                    // Save only the relative path
+                    employee.ImagePath = "/EmployeeImages/" + uniqueFileName;
+                }
+
                 // 1. Save the employee record in your custom table.
                 _context.Add(employee);
                 await _context.SaveChangesAsync();
 
                 // 2. Generate a default password (make sure it meets your Identity password policy)
                 string defaultPassword = $"{employee.Name.ToLower()}_{employee.Id}!Password";
-                // Save a hash of the password in your Employee record if desired.
                 employee.Password = Employee.HashPassword(defaultPassword);
 
-                // 3. Generate a QR code (your existing code)
+                // 3. Generate a QR code
                 string qrCodeData = $"ID: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}, Email: {employee.Email}";
                 employee.QRCode = GenerateQRCode(qrCodeData);
                 if (employee.QRCode == null)
@@ -76,7 +93,6 @@ namespace FleetVision.Controllers
                     FullName = employee.Name,
                     UserName = employee.Email,
                     Email = employee.Email,
-                    // Other properties as needed
                 };
 
                 var identityResult = await _userManager.CreateAsync(employeeUser, defaultPassword);
@@ -112,9 +128,10 @@ namespace FleetVision.Controllers
         }
 
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Employee employee)
+        public async Task<IActionResult> Edit(int id, [FromForm] Employee employee, IFormFile? imageFile)
         {
             if (id != employee.Id)
             {
@@ -125,7 +142,6 @@ namespace FleetVision.Controllers
 
             if (!ModelState.IsValid)
             {
-                // Log validation errors
                 var errors = ModelState.Values.SelectMany(v => v.Errors);
                 foreach (var error in errors)
                 {
@@ -134,6 +150,7 @@ namespace FleetVision.Controllers
 
                 return Json(new { success = false, message = "Invalid data. Please check the form." });
             }
+
             try
             {
                 // Get the existing employee from the database
@@ -147,6 +164,34 @@ namespace FleetVision.Controllers
                 existingEmployee.Name = employee.Name;
                 existingEmployee.Position = employee.Position;
                 existingEmployee.Department = employee.Department;
+
+                // Handle Image Upload
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/EmployeeImages");
+
+                    // Delete old image if it exists
+                    if (!string.IsNullOrEmpty(existingEmployee.ImagePath))
+                    {
+                        string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingEmployee.ImagePath.TrimStart('/'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Save new image
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(fileStream);
+                    }
+
+                    // Update image path
+                    existingEmployee.ImagePath = "/EmployeeImages/" + uniqueFileName;
+                }
 
                 // Generate new QR code data
                 string qrCodeData = $"ID: {employee.Id}, Name: {employee.Name}, Position: {employee.Position}, Department: {employee.Department}, Email: {employee.Email}";
@@ -181,6 +226,7 @@ namespace FleetVision.Controllers
                 return Json(new { success = false, message = "An error occurred while updating the employee. Please try again." });
             }
         }
+
 
 
         [HttpPost, ActionName("Delete")]
@@ -243,13 +289,16 @@ namespace FleetVision.Controllers
             var today = DateTime.Today;
             var now = DateTime.Now;
 
-            var latestAttendance = await _context.Attendances
+            // Get all attendance records for today
+            var todaysRecords = await _context.Attendances
                 .Where(a => a.EmployeeId == employee.Id && a.TimeIn.Date == today)
-                .OrderByDescending(a => a.TimeIn)
-                .FirstOrDefaultAsync();
+                .OrderBy(a => a.TimeIn)
+                .ToListAsync();
 
-            if (latestAttendance == null)
+            // Determine the next action based on existing records
+            if (todaysRecords.Count == 0)
             {
+                // First Time In
                 var newAttendance = new Attendance
                 {
                     EmployeeId = employee.Id,
@@ -261,30 +310,67 @@ namespace FleetVision.Controllers
                 {
                     EmployeeId = employee.Id,
                     Timestamp = now,
-                    Status = "Time In"
+                    Status = "Time In (Start of Shift)"
                 });
 
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "✅ Time In recorded successfully!" });
             }
-            else if (latestAttendance.TimeOut == null && (now - latestAttendance.TimeIn).TotalMinutes >= 240)
+            else if (todaysRecords.Count == 1 && todaysRecords[0].TimeOut == null)
             {
-                latestAttendance.TimeOut = now;
-                _context.Update(latestAttendance);
+                // First Time Out (Break)
+                todaysRecords[0].TimeOut = now;
+                _context.Update(todaysRecords[0]);
 
                 _context.AttendanceLogs.Add(new AttendanceLog
                 {
                     EmployeeId = employee.Id,
                     Timestamp = now,
-                    Status = "Time Out"
+                    Status = "Time Out (Break)"
                 });
 
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "✅ Time Out recorded successfully!" });
+                return Json(new { success = true, message = "✅ Time Out for break recorded!" });
+            }
+            else if (todaysRecords.Count == 1 && todaysRecords[0].TimeOut != null)
+            {
+                // Second Time In (After Break)
+                var secondAttendance = new Attendance
+                {
+                    EmployeeId = employee.Id,
+                    TimeIn = now
+                };
+                _context.Attendances.Add(secondAttendance);
+
+                _context.AttendanceLogs.Add(new AttendanceLog
+                {
+                    EmployeeId = employee.Id,
+                    Timestamp = now,
+                    Status = "Time In (After Break)"
+                });
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Time In after break recorded!" });
+            }
+            else if (todaysRecords.Count == 2 && todaysRecords[1].TimeOut == null)
+            {
+                // Second Time Out (End of Shift)
+                todaysRecords[1].TimeOut = now;
+                _context.Update(todaysRecords[1]);
+
+                _context.AttendanceLogs.Add(new AttendanceLog
+                {
+                    EmployeeId = employee.Id,
+                    Timestamp = now,
+                    Status = "Time Out (End of Shift)"
+                });
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Time Out at end of shift recorded!" });
             }
             else
             {
-                return Json(new { success = false, message = "⚠ Cannot Time Out yet. Minimum 4 hours required after Time In." });
+                return Json(new { success = false, message = "⚠ You have already completed your attendance for today." });
             }
         }
 
@@ -295,14 +381,24 @@ namespace FleetVision.Controllers
             var attendanceRecords = await _context.Attendances
                 .Where(a => a.TimeIn.Date == today)
                 .Include(a => a.Employee) // Include Employee details
-                .OrderByDescending(a => a.TimeIn)
+                .OrderBy(a => a.TimeIn)
                 .ToListAsync();
 
-            return View(attendanceRecords);
+            // Group by employee to get 2 Time In & Time Out records
+            var groupedRecords = attendanceRecords
+                .GroupBy(a => a.EmployeeId)
+                .Select(g => new
+                {
+                    Employee = g.First().Employee, // Get employee details
+                    FirstTimeIn = g.ElementAtOrDefault(0)?.TimeIn,
+                    FirstTimeOut = g.ElementAtOrDefault(0)?.TimeOut,
+                    SecondTimeIn = g.ElementAtOrDefault(1)?.TimeIn,
+                    SecondTimeOut = g.ElementAtOrDefault(1)?.TimeOut
+                })
+                .ToList();
+
+            return View(groupedRecords);
         }
-
-
-
 
         private string? GenerateQRCode(string qrCodeData)
         {
