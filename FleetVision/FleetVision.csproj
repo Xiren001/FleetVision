@@ -29,10 +29,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\TruckQR\" />
     <Folder Include="wwwroot\EmployeeImages\" />
     <Folder Include="wwwroot\TrucksImages\" />
     <Folder Include="wwwroot\qrcodes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\TruckQR\QR.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

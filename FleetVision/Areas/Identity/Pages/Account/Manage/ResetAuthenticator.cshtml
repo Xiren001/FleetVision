@@ -7,19 +7,45 @@
 
 <partial name="_StatusMessage" for="StatusMessage" />
 <h3>@ViewData["Title"]</h3>
-<div class="alert alert-warning" role="alert">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span>
-        <strong>If you reset your authenticator key your authenticator app will not work until you reconfigure it.</strong>
-    </p>
-    <p>
-        This process disables 2FA until you verify your authenticator app.
-        If you do not complete your authenticator app configuration you may lose access to your account.
-    </p>
+
+
+
+<div class="parent">
+    <div class="div1">
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+
+                    <!-- Content Wrapper -->
+                    <div class="card border-0 shadow-sm p-4 rounded-3">
+
+                        <h4 class="fw-bold text-warning mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Important: Resetting Your Authenticator Key
+                        </h4>
+
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning shadow-sm">
+                            <p class="fw-bold">
+                                <i class="bi bi-shield-lock-fill me-2"></i> If you reset your authenticator key, your authenticator app will not work until you reconfigure it.
+                            </p>
+                            <p>
+                                This process disables <strong>Two-Factor Authentication (2FA)</strong> until you verify your authenticator app again.
+                                If you do not complete your configuration, you may <strong>lose access</strong> to your account.
+                            </p>
+                        </div>
+
+                        <!-- Reset Authenticator Key Button -->
+                        <form id="reset-authenticator-form" method="post">
+                            <button id="reset-authenticator-button" class="w-100 btn btn-lg btn-danger fw-bold shadow-sm rounded-3">
+                                <i class="bi bi-arrow-clockwise me-2"></i> Reset Authenticator Key
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="div2"><partial name="_ManageNav" /></div>
 </div>
-<div>
-    <form id="reset-authenticator-form" method="post">
-        <button id="reset-authenticator-button" class="btn btn-danger" type="submit">Reset authenticator key</button>
-    </form>
-</div>
-<partial name="_ManageNav" />

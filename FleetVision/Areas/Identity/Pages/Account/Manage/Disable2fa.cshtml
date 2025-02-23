@@ -8,18 +8,39 @@
 <partial name="_StatusMessage" for="StatusMessage" />
 <h3>@ViewData["Title"]</h3>
 
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>This action only disables 2FA.</strong>
-    </p>
-    <p>
-        Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key
-        used in an authenticator app you should <a asp-page="./ResetAuthenticator">reset your authenticator keys.</a>
-    </p>
-</div>
+<div class="parent">
+    <div class="div1">
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
 
-<div>
-    <form method="post">
-        <button class="btn btn-danger" type="submit">Disable 2FA</button>
-    </form>
+                    <!-- Content Wrapper -->
+                    <div class="card border-0 shadow-sm p-4 rounded-3">
+
+                        <h4 class="fw-bold text-danger mb-3"><i class="bi bi-shield-exclamation me-2"></i> Disable Two-Factor Authentication</h4>
+
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning shadow-sm">
+                            <p class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> This action only disables 2FA.</p>
+                            <p>
+                                Disabling 2FA does not change the keys used in authenticator apps. If you wish to change the key
+                                used in an authenticator app, you should
+                                <a asp-page="./ResetAuthenticator" class="fw-bold text-primary">reset your authenticator keys</a>.
+                            </p>
+                        </div>
+
+                        <!-- Disable 2FA Form -->
+                        <form method="post">
+                            <button class="w-100 btn btn-lg btn-danger fw-bold shadow-sm rounded-3">
+                                <i class="bi bi-x-circle me-2"></i> Disable 2FA
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="div2"><partial name="_ManageNav" /></div>
 </div>

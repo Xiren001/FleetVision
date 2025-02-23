@@ -7,21 +7,48 @@
 
 <partial name="_StatusMessage" for="StatusMessage" />
 <h3>@ViewData["Title"]</h3>
-<div class="alert alert-warning" role="alert">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span>
-        <strong>Put these codes in a safe place.</strong>
-    </p>
-    <p>
-        If you lose your device and don't have the recovery codes you will lose access to your account.
-    </p>
-    <p>
-        Generating new recovery codes does not change the keys used in authenticator apps. If you wish to change the key
-        used in an authenticator app you should <a asp-page="./ResetAuthenticator">reset your authenticator keys.</a>
-    </p>
-</div>
-<div>
-    <form method="post">
-        <button class="btn btn-danger" type="submit">Generate Recovery Codes</button>
-    </form>
+
+
+<div class="parent">
+    <div class="div1">
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+
+                    <!-- Content Wrapper -->
+                    <div class="card border-0 shadow-sm p-4 rounded-3">
+
+                        <h4 class="fw-bold text-warning mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Important: Secure Your Recovery Codes
+                        </h4>
+
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning shadow-sm">
+                            <p class="fw-bold">
+                                <i class="bi bi-shield-lock-fill me-2"></i> Put these codes in a safe place.
+                            </p>
+                            <p>
+                                If you lose your device and don't have the recovery codes, you will lose access to your account.
+                            </p>
+                            <p>
+                                Generating new recovery codes does not change the keys used in authenticator apps. If you wish to change the key
+                                used in an authenticator app, you should
+                                <a asp-page="./ResetAuthenticator" class="fw-bold text-primary">reset your authenticator keys</a>.
+                            </p>
+                        </div>
+
+                        <!-- Generate Recovery Codes Button -->
+                        <form method="post">
+                            <button class="w-100 btn btn-lg btn-danger fw-bold shadow-sm rounded-3">
+                                <i class="bi bi-key-fill me-2"></i> Generate Recovery Codes
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="div2"><partial name="_ManageNav" /></div>
 </div>

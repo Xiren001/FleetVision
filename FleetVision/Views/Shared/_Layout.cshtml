@@ -34,9 +34,6 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Admin">Admin</a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Employee" asp-action="Index">Employee</a>
                             </li>
                             <li class="nav-item">
@@ -52,6 +49,18 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Truck" asp-action="Index">Trucks</a>
                             </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="DispatchLog" asp-action="TodayDispatches">Today's Dispatches</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="DispatchLog" asp-action="Index">Dispatch Logs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Home" asp-action="TruckQR">Truck QR</a>
+                            </li>
+
+
                         }
 
                         @if (User.IsInRole("User"))
@@ -66,6 +75,7 @@
                         {
                            
                         }
+
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -74,7 +84,7 @@
         </nav>
     </header>
     
-    <div class="container min-vh-100 p-2">
+    <div class="container p-2">
             @RenderBody()
     </div>
 

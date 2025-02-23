@@ -15,6 +15,8 @@ namespace FleetVision.DBContext
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<AttendanceLog> AttendanceLogs { get; set; }
         public DbSet<Truck> Trucks { get; set; }
+        public DbSet<DispatchHistory> DispatchHistories { get; set; }
+        public DbSet<DispatchLog> DispatchLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

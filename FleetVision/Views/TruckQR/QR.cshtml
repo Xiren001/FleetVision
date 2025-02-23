@@ -1,6 +1,5 @@
-﻿
-@{
-    ViewData["Title"] = "Attendance Scanner - QR Code Scanner";
+﻿@{
+    ViewData["Title"] = "Truck Scanner - QR Code Scanner";
 }
 
 <div class="container my-5">
@@ -21,7 +20,7 @@
             </div>
 
             <!-- Status Message -->
-            <div id="scan-status" class="text-center fw-bold mt-3"></div>
+            <div id="scan-status" class="alert d-none mt-3" role="alert"></div>
         </div>
     </div>
 </div>
@@ -33,8 +32,8 @@
         document.getElementById("openScanner").addEventListener("click", () => {
             if (!scannerWindow || scannerWindow.closed) {
                 scannerWindow = window.open(
-                    "/Home/ScannerWindow",
-                    "ScannerWindow",
+                    "/Home/TruckScannerWindow", // Updated URL to match HomeController
+                    "TruckScannerWindow",
                     "width=500,height=600,toolbar=no,menubar=no,location=no,status=no"
                 );
             } else {
@@ -42,20 +41,22 @@
             }
         });
 
-        // ✅ Listen for real-time updates from scanner
+
+        // ✅ Listen for QR code scan updates from local storage
         window.addEventListener("storage", (event) => {
             if (event.key === "scannedQRCode") {
-                document.getElementById("result").value = event.newValue;
-                sendAttendance(event.newValue);
+                const scannedData = event.newValue;
+                document.getElementById("result").value = scannedData;
+                recordDispatch(scannedData);
             }
         });
 
-        // ✅ Send Attendance Data to Server
-        function sendAttendance(qrData) {
+        // ✅ Send Dispatch Record to Server
+        function recordDispatch(qrData) {
             const tokenElement = document.querySelector("input[name='__RequestVerificationToken']");
             const token = tokenElement ? tokenElement.value : "";
 
-            fetch("/Employee/RecordAttendance", {
+            fetch("/Truck/RecordDispatch", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -65,15 +66,19 @@
             })
             .then((response) => response.json())
             .then((data) => {
-                document.getElementById("scan-status").textContent = data.message;
-                document.getElementById("scan-status").style.color = data.success ? "green" : "red";
+                showScanStatus(data.success, data.message);
             })
             .catch((error) => {
-                console.error("🚨 Error sending attendance:", error);
-                document.getElementById("scan-status").textContent = "⚠ Error processing attendance.";
-                document.getElementById("scan-status").style.color = "red";
+                console.error("🚨 Error recording dispatch:", error);
+                showScanStatus(false, "⚠ Error processing dispatch.");
             });
+        }
+
+        // ✅ Display status message dynamically
+        function showScanStatus(isSuccess, message) {
+            const statusDiv = document.getElementById("scan-status");
+            statusDiv.textContent = message;
+            statusDiv.className = `alert mt-3 ${isSuccess ? 'alert-success' : 'alert-danger'} d-block`;
         }
     </script>
 }
-

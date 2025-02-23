@@ -15,56 +15,52 @@ namespace FleetVision.Controllers
             _logger = logger;
         }
 
-
-        public IActionResult Index()
-        {
-            return View();
-        }
-
         public IActionResult Home()
         {
             return View();
         }
+
+
+        [Authorize]
         public IActionResult About()
         {
             return View();
         }
+        [Authorize]
         public IActionResult Services()
         {
             return View();
         }
+        [Authorize]
         public IActionResult Blog()
         {
             return View();
         }
-
+        [Authorize]
         public IActionResult Contact()
         {
             return View();
         }
-
+        [Authorize]
         public IActionResult ScannerWindow()
         {
             return View();
         }
-
-
-
-
         [Authorize]
-        public IActionResult Privacy()
+        public IActionResult TruckScannerWindow()
         {
-            return View();
+            return View("~/Views/TruckQR/TruckScannerWindow.cshtml");
         }
 
 
 
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Admin()
+        public IActionResult Index()
         {
             return View();
         }
+
         public IActionResult Employee()
         {
             return View();
@@ -87,6 +83,21 @@ namespace FleetVision.Controllers
             return View();
         }
 
+        public IActionResult DispatchLogs()
+        {
+            return RedirectToAction("Index", "DispatchLog");
+        }
+
+        public IActionResult TodayDispatches()
+        {
+            return RedirectToAction("TodayDispatches", "DispatchLog");
+        }
+
+        public IActionResult TruckQR()
+        {
+            return View("~/Views/TruckQR/QR.cshtml"); 
+        }
+
 
 
 
@@ -95,8 +106,6 @@ namespace FleetVision.Controllers
         {
             return View();
         }
-
-
 
 
         [Authorize(Roles = "Employee")]

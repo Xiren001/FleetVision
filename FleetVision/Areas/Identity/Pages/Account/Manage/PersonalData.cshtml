@@ -4,43 +4,70 @@
     ViewData["Title"] = "Personal Data";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
     var isEmployee = User.IsInRole("Employee"); // Check if the logged-in user is an Employee
+    var isAdmin = User.IsInRole("Admin"); // Check if the logged-in user is an Employee
 }
 
+<h3>@ViewData["Title"]</h3>
 
-<div class="row">
-    <div class="col-md-6">
+<div class="parent">
+    <div class="div1">
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-12">
 
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
+                    <!-- Content Wrapper -->
+                    <div class="card border-0 shadow-sm p-4 rounded-3">
+                        <p class="mb-2 text-muted">
+                            Your account contains personal data that you have given us.
+                            This page allows you to download or delete that data.
+                        </p>
 
-        <form id="download-data" asp-page="DownloadPersonalData" method="post">
-            <button class="btn btn-primary" type="submit">Download</button>
-        </form>
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning d-flex align-items-center p-3 rounded-3 shadow-sm" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+                        </div>
 
-        <p>
-            @if (isEmployee)
-            {
-                <!-- Show a button that triggers the modal if the user is an employee -->
-                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#roleRestrictionModal">Delete</button>
-            }
-            else
-            {
-                <!-- Normal delete button for other users -->
-                <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger">Delete</a>
-            }
-        </p>
+                        <!-- Download Data Button -->
+                        <div class="mb-3">
+                            <form id="download-data" asp-page="DownloadPersonalData" method="post">
+                                <button class="btn btn-primary w-100 rounded-3 fw-bold shadow-sm" type="submit">
+                                    <i class="bi bi-download me-2"></i> Download
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Delete Account Button -->
+                        <div>
+                            @if (isEmployee)
+                            {
+                                <button class="btn btn-danger w-100 rounded-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#roleRestrictionModal">
+                                    <i class="bi bi-trash-fill me-2"></i> Delete
+                                </button>
+                            }
+                            else
+                            {
+                                <a id="delete" asp-page="DeletePersonalData" class="btn btn-danger w-100 rounded-3 fw-bold shadow-sm">
+                                    <i class="bi bi-trash-fill me-2"></i> Delete
+                                </a>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
     </div>
-    <div class="col-md-6">
+    <div class="div2">
         <partial name="_ManageNav" />
     </div>
 </div>
 
-
 <!-- Bootstrap Modal (Warning for Employees) -->
 <div class="modal fade" id="roleRestrictionModal" tabindex="-1" aria-labelledby="roleRestrictionModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="roleRestrictionModalLabel">Action Not Allowed</h5>

@@ -177,6 +177,95 @@ namespace FleetVision.Controllers
             }
         }
 
+
+        public async Task<IActionResult> TodayDispatches()
+        {
+            var today = DateTime.Today;
+
+            var dispatchRecords = await _context.DispatchLogs
+                .Where(d => d.DispatchTime.Date == today || (d.ReturnTime.HasValue && d.ReturnTime.Value.Date == today))
+                .Include(d => d.Truck)
+                .OrderBy(d => d.DispatchTime)
+                .ToListAsync();
+
+            var formattedRecords = dispatchRecords.Select(d => new
+            {
+                Truck = d.Truck.PlateNumber,
+                DispatchTime = d.DispatchTime.ToString("hh:mm tt"),
+                ReturnTime = d.ReturnTime?.ToString("hh:mm tt") ?? "In Transit",
+                Status = d.ReturnTime.HasValue ? "Returned" : "Dispatched"
+            }).ToList();
+
+            return View(formattedRecords);
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> RecordDispatch([FromBody] DispatchRequestModel data)
+        {
+            if (data == null || string.IsNullOrEmpty(data.QrCodeData))
+            {
+                return Json(new { success = false, message = "Invalid QR code." });
+            }
+
+            string truckPlate = data.QrCodeData;
+
+            var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.PlateNumber == truckPlate);
+
+            if (truck == null)
+            {
+                return Json(new { success = false, message = "Truck not found." });
+            }
+
+            var now = DateTime.Now;
+
+            // Check if truck is already dispatched
+            var lastDispatch = await _context.DispatchLogs
+                .Where(d => d.TruckId == truck.Id && d.ReturnTime == null)
+                .FirstOrDefaultAsync();
+
+            if (lastDispatch == null)
+            {
+                // New Dispatch
+                var newDispatch = new DispatchLog
+                {
+                    TruckId = truck.Id,
+                    DispatchTime = now
+                };
+                _context.DispatchLogs.Add(newDispatch);
+
+                _context.DispatchHistories.Add(new DispatchHistory
+                {
+                    TruckId = truck.Id,
+                    Timestamp = now,
+                    Status = "Dispatched"
+                });
+
+                truck.Status = "Not Available"; // Truck is now in use
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Truck dispatched!" });
+            }
+            else
+            {
+                // Returning the Truck
+                lastDispatch.ReturnTime = now;
+                _context.Update(lastDispatch);
+
+                _context.DispatchHistories.Add(new DispatchHistory
+                {
+                    TruckId = truck.Id,
+                    Timestamp = now,
+                    Status = "Returned"
+                });
+
+                truck.Status = "Available"; // Truck is now free
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Truck returned!" });
+            }
+        }
+
         private string? GenerateQRCode(string qrCodeData)
         {
             try

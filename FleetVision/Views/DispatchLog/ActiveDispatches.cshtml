@@ -1,0 +1,37 @@
+﻿@model List<FleetVision.Models.DispatchLog>
+
+@{
+    ViewData["Title"] = "Active Dispatches";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+            <h2 class="text-center mb-4">Active Dispatches</h2>
+        </div>
+    </div>
+
+    <div class="table-responsive p-2 rounded-3">
+        <table class="table table-hover table-striped rounded-3 overflow-hidden shadow">
+            <thead class="table-dark">
+                <tr>
+                    <th>Truck Plate</th>
+                    <th>Dispatch Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dispatch in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@dispatch.Truck?.PlateNumber ?? "Unknown"</td>
+                        <td>@dispatch.DispatchTime.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <span class="badge bg-warning rounded-pill px-3 py-2">In Transit</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
