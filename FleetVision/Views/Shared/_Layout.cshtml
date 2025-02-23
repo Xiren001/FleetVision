@@ -15,77 +15,102 @@
     <link rel="icon" href="/favicon.ico" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white sticky" data-offset="500">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Fleet<span class="text-primary">Vision</span></a>
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark text-white d-flex flex-column min-vh-100">
+                <div class="px-3 pt-3 text-center">
+                    <a class="navbar-brand text-white fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                        Fleet<span class="text-primary">Vision</span>
+                    </a>
+                </div>
 
-                <div class="navbar-collapse collapse" id="navbarContent">
-                    <ul class="navbar-nav ml-auto mr-auto">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                <hr class="border-light opacity-50">
+
+                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
+                    <li class="nav-item w-100">
+                        <a class="nav-link text-white d-flex align-items-center px-3 py-2" asp-area="" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door fs-5 me-2"></i> Home
+                        </a>
+                    </li>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- Attendance / Dispatches -->
+                        <li class="nav-item w-100">
+                            <a href="#submenu1" class="nav-link text-white d-flex align-items-center px-3 py-2" data-bs-toggle="collapse">
+                                <i class="bi bi-speedometer2 fs-5 me-2"></i> Attendance / Dispatches
+                            </a>
+                            <ul class="collapse list-unstyled ps-3" id="submenu1">
+                                <li><a class="nav-link text-white px-3 py-1" asp-area="" asp-controller="AttendanceLog" asp-action="TodayAttendance">Attendance</a></li>
+                                <li><a class="nav-link text-white px-3 py-1" asp-area="" asp-controller="DispatchLog" asp-action="TodayDispatches">Dispatched Truck</a></li>
+                            </ul>
                         </li>
 
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Employee" asp-action="Index">Employee</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="QR">QR Code</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="AttendanceLog" asp-action="TodayAttendance">Attendance</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="AttendanceLog" asp-action="Attendance">Attendance Logs</a>
-                            </li>
+                        <!-- Employee Record -->
+                        <li class="nav-item w-100">
+                            <a class="nav-link text-white d-flex align-items-center px-3 py-2" asp-area="" asp-controller="Employee" asp-action="Index">
+                                <i class="bi bi-person-badge fs-5 me-2"></i> Employee Record
+                            </a>
+                        </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Truck" asp-action="Index">Trucks</a>
-                            </li>
+                        <!-- QR Scanner -->
+                        <li class="nav-item w-100">
+                            <a href="#submenu2" class="nav-link text-white d-flex align-items-center px-3 py-2" data-bs-toggle="collapse">
+                                <i class="bi bi-upc-scan fs-5 me-2"></i> QR Scanner
+                            </a>
+                            <ul class="collapse list-unstyled ps-3" id="submenu2">
+                                <li><a class="nav-link text-white px-3 py-1" asp-area="" asp-controller="Home" asp-action="QR">Employee Attendance</a></li>
+                                <li><a class="nav-link text-white px-3 py-1" asp-controller="Home" asp-action="TruckQR">Dispatched Truck</a></li>
+                            </ul>
+                        </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="DispatchLog" asp-action="TodayDispatches">Today's Dispatches</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="DispatchLog" asp-action="Index">Dispatch Logs</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Home" asp-action="TruckQR">Truck QR</a>
-                            </li>
+                        <!-- Logs -->
+                        <li class="nav-item w-100">
+                            <a href="#submenu3" class="nav-link text-white d-flex align-items-center px-3 py-2" data-bs-toggle="collapse">
+                                <i class="bi bi-folder-check fs-5 me-2"></i> Logs
+                            </a>
+                            <ul class="collapse list-unstyled ps-3" id="submenu3">
+                                <li><a class="nav-link text-white px-3 py-1" asp-area="" asp-controller="AttendanceLog" asp-action="Attendance">Attendance Logs</a></li>
+                                <li><a class="nav-link text-white px-3 py-1" asp-area="" asp-controller="DispatchLog" asp-action="Index">Dispatched Logs</a></li>
+                            </ul>
+                        </li>
 
+                        <!-- Truck Records -->
+                        <li class="nav-item w-100">
+                            <a class="nav-link text-white d-flex align-items-center px-3 py-2" asp-area="" asp-controller="Truck" asp-action="Index">
+                                <i class="bi bi-truck fs-5 me-2"></i> Truck Records
+                            </a>
+                        </li>
+                    }
 
-                        }
+                    @if (User.IsInRole("User"))
+                    {
+                        <li class="nav-item w-100">
+                            <a class="nav-link text-white d-flex align-items-center px-3 py-2" asp-area="" asp-controller="Home" asp-action="User">
+                                <i class="bi bi-people fs-5 me-2"></i> Users
+                            </a>
+                        </li>
+                    }
 
-                        @if (User.IsInRole("User"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="User">Users</a>
-                            </li>
-                        }
+                </ul>
 
+                <hr class="border-light opacity-50 w-100">
 
-                        @if (User.IsInRole("Employee"))
-                        {
-                           
-                        }
-
-                    </ul>
+                <!-- Logout -->
+                <div class="text-center pb-3">
                     <partial name="_LoginPartial" />
                 </div>
 
-            </div>
-        </nav>
-    </header>
-    
-    <div class="container p-2">
-            @RenderBody()
+            </nav>
+            <!-- Sidebar End -->
+            <!-- Content Area -->
+            <main class="col py-3 bg-light">
+                @RenderBody()
+            </main>
+
+        </div>
     </div>
 
 
@@ -109,13 +134,6 @@
             </div>
         </div>
     </div>
-
-
-  @* <footer class="page-footer bg-image" style="background-image: url('/Images/world_pattern.svg');"> *@
-  @*       <div class="container"> *@
-  @*           <p class="text-center" id="copyright">Copyright &copy; 2025. FleetVision <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a></p> *@
-  @*       </div> *@
-  @* </footer> *@
 
     <script src="~/js/jquery-3.5.1.min.js" asp-append-version="true"></script>
     <script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>

@@ -2,34 +2,44 @@
 @inject SignInManager<Users> signInManager
 @inject UserManager<Users> UserManager
 
-<ul class="navbar-nav ms-auto align-items-center">
-	@if (signInManager.IsSignedIn(User))
-	{
-		var user = await UserManager.GetUserAsync(User);
 
-		<li class="nav-item">
-			<a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/PersonalData">
-				@(user?.UserName?.Split('@')[0]?.First().ToString().ToUpper() + user?.UserName?.Split('@')[0]?.Substring(1))
-			</a>
-		</li>
-		<li class="nav-item">
-			<button type="button" class="nav-link btn btn-link text-dark p-0" data-bs-toggle="modal" data-bs-target="#logoutModal">
-				Logout
-			</button>
-		</li>
-		@* <li class="nav-item"> *@
-		@* 	<a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/PersonalData">Manage</a> *@
-		@* </li> *@
+@if (signInManager.IsSignedIn(User))
+{
+	var user = await UserManager.GetUserAsync(User);
 
-	}
-	else
-	{
-		<li class="nav-item">
-			<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
-		</li>
-		<li class="nav-item">
-			<a class="btn btn-primary ml-lg-2" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
-		</li>
-	}
-</ul>
+    <div class="dropdown pb-4">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+           id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="https://github.com/mdo.png" alt="User Avatar" width="35" height="35" class="rounded-circle border border-light">
+            <span class="d-none d-sm-inline mx-2 fw-semibold">
+                @(char.ToUpper(user?.UserName?.Split('@')[0][0] ?? 'U') + user?.UserName?.Split('@')[0].Substring(1) ?? "User")
+            </span>
+        </a>
 
+        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-light text-small shadow-lg mt-2" aria-labelledby="dropdownUser1">
+            <li>
+                <a class="dropdown-item d-flex align-items-center" asp-area="Identity" asp-page="/Account/Manage/PersonalData">
+                    <i class="bi bi-person-circle me-2 fs-6"></i> Profile Settings
+                </a>
+            </li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+            <li>
+                <button type="button" class="dropdown-item d-flex align-items-center text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    <i class="bi bi-box-arrow-right me-2 fs-6"></i> Logout
+                </button>
+            </li>
+        </ul>
+    </div>
+
+}
+else
+{
+	<li class="nav-item">
+		<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+	</li>
+	<li class="nav-item">
+		<a class="btn btn-primary ml-lg-2" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
+	</li>
+}
