@@ -208,10 +208,15 @@ namespace FleetVision.Controllers
                 return Json(new { success = false, message = "Invalid QR code." });
             }
 
-            string truckPlate = data.QrCodeData;
+            string[] qrParts = data.QrCodeData.Split(", ");
+            string truckPlate = qrParts.FirstOrDefault(e => e.StartsWith("Plate:"))?.Split(": ")[1];
 
-            var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.PlateNumber == truckPlate);
+            if (string.IsNullOrEmpty(truckPlate))
+            {
+                return Json(new { success = false, message = "Invalid QR Code format. Plate Number missing." });
+            }
 
+            var truck = await _context.Trucks.FirstOrDefaultAsync(e => e.PlateNumber == truckPlate);
             if (truck == null)
             {
                 return Json(new { success = false, message = "Truck not found." });
@@ -219,14 +224,33 @@ namespace FleetVision.Controllers
 
             var now = DateTime.Now;
 
-            // Check if truck is already dispatched
+            // Get the latest dispatch log for this truck
             var lastDispatch = await _context.DispatchLogs
-                .Where(d => d.TruckId == truck.Id && d.ReturnTime == null)
+                .Where(d => d.TruckId == truck.Id)
+                .OrderByDescending(d => d.DispatchTime)
                 .FirstOrDefaultAsync();
 
-            if (lastDispatch == null)
+            if (lastDispatch != null && lastDispatch.ReturnTime == null)
             {
-                // New Dispatch
+                // This means the truck is currently dispatched and should be returned
+                lastDispatch.ReturnTime = now;
+                _context.Update(lastDispatch);
+
+                _context.DispatchHistories.Add(new DispatchHistory
+                {
+                    TruckId = truck.Id,
+                    Timestamp = now,
+                    Status = "Returned"
+                });
+
+                truck.Status = "Available"; // Truck is now free
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "✅ Truck returned!" });
+            }
+            else if (truck.Status == "Available")
+            {
+                // Ensure we only dispatch if the truck was actually returned before
                 var newDispatch = new DispatchLog
                 {
                     TruckId = truck.Id,
@@ -248,23 +272,10 @@ namespace FleetVision.Controllers
             }
             else
             {
-                // Returning the Truck
-                lastDispatch.ReturnTime = now;
-                _context.Update(lastDispatch);
-
-                _context.DispatchHistories.Add(new DispatchHistory
-                {
-                    TruckId = truck.Id,
-                    Timestamp = now,
-                    Status = "Returned"
-                });
-
-                truck.Status = "Available"; // Truck is now free
-
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "✅ Truck returned!" });
+                return Json(new { success = false, message = "🚫 Truck cannot be dispatched or returned at this moment." });
             }
         }
+
 
         private string? GenerateQRCode(string qrCodeData)
         {
